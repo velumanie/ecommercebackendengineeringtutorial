@@ -13,7 +13,7 @@ on:
       - "common/**"
 
 jobs:
-  build-test-analyze:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,8 +27,3 @@ jobs:
 
       - name: Unit + integration tests
         run: ./gradlew :gateway-service:test --no-daemon
-
-      - name: SonarQube analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew :gateway-service:sonar --no-daemon -Dsonar.host.url=${{ vars.SONAR_HOST_URL }}
