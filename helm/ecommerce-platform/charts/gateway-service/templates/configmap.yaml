@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gateway-service.fullname" . }}-config
+  namespace: {{ .Values.global.namespace | default "ecommerce" }}
+data:
+  SPRING_PROFILES_ACTIVE: "kubernetes"
+  SERVER_PORT: "{{ .Values.containerPort }}"
+  REDIS_HOST: "redis"

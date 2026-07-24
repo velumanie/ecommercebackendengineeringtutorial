@@ -1,0 +1,1542 @@
+<meta charset="UTF-8">
+<title>E-Commerce Microservices Platform — Architecture Guide</title>
+<style>
+  :root{
+    --bg:#f6f5f2;
+    --bg-raised:#ffffff;
+    --ink:#1c2024;
+    --ink-dim:#5b6470;
+    --line:#dcd8d0;
+    --line-strong:#c3bdb2;
+    --accent:#3d5a99;
+    --accent-ink:#ffffff;
+    --accent-soft:#e7ecf6;
+    --code-bg:#f0eee9;
+    --ok:#3e7a4c;
+    --warn:#a86a1f;
+    --crit:#a8402f;
+    --shadow: 0 1px 2px rgba(28,32,36,.06), 0 6px 20px rgba(28,32,36,.05);
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161a;
+    --bg-raised:#1b1e23;
+    --ink:#e8e6e1;
+    --ink-dim:#9aa0a8;
+    --line:#2c3036;
+    --line-strong:#3c4149;
+    --accent:#7f9cd6;
+    --accent-ink:#0e1218;
+    --accent-soft:#232a38;
+    --code-bg:#101216;
+    --ok:#6fbf7f;
+    --warn:#d99a4e;
+    --crit:#e2695a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161a; --bg-raised:#1b1e23; --ink:#e8e6e1; --ink-dim:#9aa0a8;
+      --line:#2c3036; --line-strong:#3c4149; --accent:#7f9cd6; --accent-ink:#0e1218;
+      --accent-soft:#232a38; --code-bg:#101216; --ok:#6fbf7f; --warn:#d99a4e; --crit:#e2695a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family: Charter, 'Iowan Old Style', 'Georgia', 'Cambria', serif;
+    font-size:16.5px; line-height:1.6;
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  .eyebrow{
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    font-size:11.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--accent);
+    font-weight:600;
+  }
+  h1,h2,h3,h4{
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight:700; letter-spacing:-.01em; color:var(--ink); text-wrap:balance;
+  }
+  h1{ font-size:clamp(28px,4vw,42px); line-height:1.08; margin:.3em 0 .2em; letter-spacing:-.02em;}
+  h2{ font-size:26px; margin:0 0 4px; padding-top:2px; }
+  h3{ font-size:18px; margin:1.6em 0 .5em; }
+  h4{ font-size:15px; margin:1.4em 0 .4em; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700;}
+  p{ margin:.7em 0; max-width:74ch; color:var(--ink); }
+  a{ color:var(--accent); }
+  code{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:.88em; background:var(--code-bg); padding:.1em .35em; border-radius:4px; }
+  pre{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:13px; line-height:1.55; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code{ background:none; padding:0; }
+
+  .shell{ display:grid; grid-template-columns:250px minmax(0,1fr); gap:0; max-width:1320px; margin:0 auto; }
+  @media (max-width:980px){ .shell{ grid-template-columns:1fr; } .toc{ position:static !important; height:auto !important; border-right:none !important; border-bottom:1px solid var(--line); } }
+
+  .toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    border-right:1px solid var(--line); padding:28px 18px 40px 28px;
+  }
+  .toc .brand{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-weight:800; font-size:15px; letter-spacing:-.01em; margin-bottom:2px;}
+  .toc .brand small{ display:block; font-weight:500; color:var(--ink-dim); font-size:11.5px; margin-top:2px;}
+  .toc nav{ margin-top:22px; }
+  .toc a{ display:block; text-decoration:none; color:var(--ink-dim); font-size:13px; padding:5px 0; border-left:2px solid transparent; padding-left:10px; margin-left:-11px; }
+  .toc a:hover{ color:var(--ink); }
+  .toc .part-num{ font-family:ui-monospace,monospace; color:var(--accent); margin-right:6px; font-size:11.5px;}
+
+  main{ padding:44px 48px 120px; min-width:0; }
+  @media (max-width:640px){ main{ padding:28px 20px 90px; } }
+
+  header.hero{ max-width:900px; margin-bottom:26px; }
+  .stack-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+  .chip{ font-family:ui-monospace,monospace; font-size:11.5px; border:1px solid var(--line-strong); border-radius:20px; padding:4px 10px; color:var(--ink-dim); }
+
+  section.part{ max-width:920px; padding-top:56px; margin-top:56px; border-top:1px solid var(--line); scroll-margin-top:20px; }
+  section.part:first-of-type{ border-top:none; margin-top:36px; padding-top:0; }
+  .part-label{ display:flex; align-items:baseline; gap:10px; margin-bottom:2px;}
+  .part-label .num{ font-family:ui-monospace,monospace; font-size:13px; color:var(--accent); font-weight:700;}
+
+  .full-bleed{ max-width:1080px; }
+
+  table{ border-collapse:collapse; width:100%; margin:1em 0; font-size:14px; }
+  caption{ caption-side:top; text-align:left; font-family:ui-monospace,monospace; font-size:11.5px; color:var(--ink-dim); margin-bottom:6px; letter-spacing:.03em; text-transform:uppercase;}
+  th,td{ text-align:left; padding:7px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700; border-bottom:1px solid var(--line-strong); }
+  td code{ white-space:nowrap; }
+  .table-wrap{ overflow-x:auto; border-radius:8px; }
+
+  .card-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin:1.2em 0; }
+  .card{ background:var(--bg-raised); border:1px solid var(--line); border-radius:10px; padding:14px 16px; box-shadow:var(--shadow); }
+  .card h4{ margin-top:0; }
+  .card p{ font-size:14px; margin:.3em 0 0; }
+
+  .pill{ display:inline-block; font-family:ui-monospace,monospace; font-size:11px; padding:2px 8px; border-radius:20px; font-weight:600; }
+  .pill.ok{ background:color-mix(in srgb, var(--ok) 16%, transparent); color:var(--ok); }
+  .pill.warn{ background:color-mix(in srgb, var(--warn) 16%, transparent); color:var(--warn); }
+  .pill.crit{ background:color-mix(in srgb, var(--crit) 16%, transparent); color:var(--crit); }
+
+  .mermaid{ background:var(--bg-raised); border:1px solid var(--line); border-radius:10px; padding:18px; box-shadow:var(--shadow); overflow-x:auto; }
+
+  .note{ border-left:3px solid var(--accent); background:var(--accent-soft); padding:10px 16px; border-radius:0 8px 8px 0; font-size:14px; margin:1em 0; }
+  .note p{ margin:.3em 0; }
+
+  ul,ol{ padding-left:1.3em; }
+  li{ margin:.3em 0; }
+
+  .tree{ font-family:ui-monospace,monospace; font-size:12.5px; line-height:1.65; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:16px 20px; overflow-x:auto; white-space:pre; }
+
+  footer{ max-width:920px; margin-top:80px; padding-top:24px; border-top:1px solid var(--line); color:var(--ink-dim); font-size:13px; }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="brand">E-Commerce Platform<small>Architecture &amp; Implementation Guide</small></div>
+    <nav>
+      <a href="#part1"><span class="part-num">01</span>Solution Architecture</a>
+      <a href="#part2"><span class="part-num">02</span>Database Design</a>
+      <a href="#part3"><span class="part-num">03</span>API Design</a>
+      <a href="#part4"><span class="part-num">04</span>Spring Boot Structure</a>
+      <a href="#part5"><span class="part-num">05</span>Service Discovery</a>
+      <a href="#part6"><span class="part-num">06</span>Inter-Service Comm</a>
+      <a href="#part7"><span class="part-num">07</span>Security</a>
+      <a href="#part8"><span class="part-num">08</span>API Gateway</a>
+      <a href="#part9"><span class="part-num">09</span>Observability</a>
+      <a href="#part10"><span class="part-num">10</span>Logging</a>
+      <a href="#part11"><span class="part-num">11</span>Dockerization</a>
+      <a href="#part12"><span class="part-num">12</span>Kubernetes</a>
+      <a href="#part13"><span class="part-num">13</span>Ingress</a>
+      <a href="#part14"><span class="part-num">14</span>Postgres on K8s</a>
+      <a href="#part15"><span class="part-num">15</span>Helm Charts</a>
+      <a href="#part16"><span class="part-num">16</span>CI/CD</a>
+      <a href="#part17"><span class="part-num">17</span>Testing</a>
+      <a href="#part18"><span class="part-num">18</span>Resiliency</a>
+      <a href="#part19"><span class="part-num">19</span>Scalability</a>
+      <a href="#part20"><span class="part-num">20</span>Production Readiness</a>
+      <a href="#part21"><span class="part-num">21</span>Repository Layout</a>
+      <a href="#part22"><span class="part-num">22</span>Learning Roadmap</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Architecture Reference · v1.0</div>
+      <h1>E-Commerce Microservices Platform</h1>
+      <p>Six bounded-context services — User, Product, Inventory, Order, Payment, Notification — behind a Spring Cloud Gateway, on Kubernetes-native service discovery, wired together with OpenFeign for synchronous calls and Kafka for events. This document is the architecture and design record; the runnable code, manifests, and pipelines it describes live alongside it in the repository (see <a href="#part21">Part 21</a>).</p>
+      <div class="stack-chips">
+        <span class="chip">Java 25</span><span class="chip">Spring Boot 4.1</span><span class="chip">Spring Data JPA</span>
+        <span class="chip">PostgreSQL 16</span><span class="chip">Spring Cloud Gateway</span><span class="chip">OpenFeign</span>
+        <span class="chip">Kafka</span><span class="chip">Kubernetes</span><span class="chip">Helm</span>
+        <span class="chip">Prometheus / Grafana</span><span class="chip">OpenTelemetry / Jaeger</span><span class="chip">ELK</span>
+        <span class="chip">JWT</span><span class="chip">Resilience4j</span>
+      </div>
+    </header>
+
+    <!-- ============ PART 1 ============ -->
+    <section class="part" id="part1">
+      <div class="part-label"><span class="num">PART 01</span></div>
+      <h2>Solution Architecture</h2>
+
+      <h3>Why microservices for this domain</h3>
+      <p>The six contexts — identity, catalog, stock, ordering, payment, notification — have independent release cadence (catalog changes daily, payment changes rarely and under change control), independent scaling profiles (product reads dwarf order writes at 50-100x during sales events), and independent compliance boundaries (payment needs PCI-adjacent isolation; the rest don't). A modular monolith was the honest alternative, and is the right call for a team under ~8 engineers — it was rejected here specifically because the payment and inventory domains need independent deployment and failure isolation from day one, not because "microservices" is a default good.</p>
+
+      <div class="card-grid">
+        <div class="card"><h4>Advantages realized</h4><p>Independent deploy &amp; scale per service · fault isolation (payment outage doesn't take down browsing) · right-sized datastore per service · team-aligned ownership boundaries.</p></div>
+        <div class="card"><h4>Costs accepted</h4><p>Distributed transactions replaced with sagas/eventual consistency · operational surface area (6 DBs, 1 broker, 1 gateway) · network latency &amp; partial-failure handling · cross-service debugging needs distributed tracing.</p></div>
+      </div>
+
+      <h3>Bounded contexts</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Service</th><th>Owns</th><th>Does not own</th></tr></thead>
+        <tbody>
+          <tr><td><code>user-service</code></td><td>Identity, credentials, roles/permissions, JWT issuance</td><td>Order history, payment methods (references only)</td></tr>
+          <tr><td><code>product-service</code></td><td>Catalog, categories, pricing, product metadata</td><td>Stock levels</td></tr>
+          <tr><td><code>inventory-service</code></td><td>Stock counts, warehouses, reservations</td><td>Product descriptions/pricing</td></tr>
+          <tr><td><code>order-service</code></td><td>Orders, order items, order lifecycle/state machine</td><td>Stock truth, payment truth — calls out and reacts to events</td></tr>
+          <tr><td><code>payment-service</code></td><td>Payments, transactions, gateway integration</td><td>Order contents</td></tr>
+          <tr><td><code>notification-service</code></td><td>Email/SMS delivery log, notification event history</td><td>Business rules of any other domain</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>High-level architecture</h3>
+      <pre class="mermaid">
+flowchart TB
+    client["Web / Mobile Client"]
+    cdn["NGINX Ingress Controller\n(TLS termination)"]
+    gw["Spring Cloud Gateway\n(authN/authZ, rate limit, routing)"]
+    subgraph svc["Kubernetes Cluster — namespace: ecommerce"]
+      us["user-service"]
+      ps["product-service"]
+      is["inventory-service"]
+      os["order-service"]
+      pay["payment-service"]
+      ns["notification-service"]
+    end
+    kafka[["Kafka Cluster"]]
+    subgraph data["Data Tier"]
+      udb[(users_db)]
+      pdb[(products_db)]
+      idb[(inventory_db)]
+      odb[(orders_db)]
+      paydb[(payments_db)]
+      ndb[(notifications_db)]
+    end
+    obs["Prometheus · Grafana · OTel Collector · Jaeger"]
+    elk["ELK Stack"]
+
+    client --> cdn --> gw
+    gw --> us & ps & is & os & pay
+    os -- OpenFeign --> is
+    os -- OpenFeign --> pay
+    os -. events .-> kafka
+    pay -. events .-> kafka
+    kafka -. consumes .-> ns
+    kafka -. consumes .-> is
+    us --- udb
+    ps --- pdb
+    is --- idb
+    os --- odb
+    pay --- paydb
+    ns --- ndb
+    svc -. metrics/traces .-> obs
+    svc -. logs .-> elk
+      </pre>
+
+      <h3>Component diagram</h3>
+      <pre class="mermaid">
+flowchart LR
+    subgraph OrderService["order-service"]
+      oc[OrderController]
+      osvc[OrderService]
+      orepo[(OrderRepository)]
+      ofeign[Feign Clients]
+      oprod[Kafka Producer]
+      oc --> osvc --> orepo
+      osvc --> ofeign
+      osvc --> oprod
+    end
+    ofeign -->|REST| InventoryAPI[[inventory-service API]]
+    ofeign -->|REST| PaymentAPI[[payment-service API]]
+    oprod -->|order.created| Topic1[["Kafka: order-events"]]
+      </pre>
+
+      <h3>Kubernetes deployment architecture</h3>
+      <pre class="mermaid">
+flowchart TB
+    ing[Ingress: api.company.com]
+    subgraph ns1["namespace: ecommerce"]
+      subgraph gwd["gateway-service Deployment (3 replicas)"]
+        gwpod1[pod]
+        gwpod2[pod]
+        gwpod3[pod]
+      end
+      gwsvc[(Service: gateway-service\nClusterIP)]
+      subgraph osd["order-service Deployment (3-10 via HPA)"]
+        opod1[pod]
+        opod2[pod]
+      end
+      osvc2[(Service: order-service\nClusterIP)]
+    end
+    subgraph ns2["namespace: data"]
+      pgss[(StatefulSet: postgres-orders)]
+    end
+    ing --> gwsvc --> gwpod1 & gwpod2 & gwpod3
+    gwpod1 & gwpod2 & gwpod3 --> osvc2 --> opod1 & opod2
+    opod1 & opod2 --> pgss
+      </pre>
+
+      <h3>Service-to-service communication</h3>
+      <pre class="mermaid">
+sequenceDiagram
+    participant O as order-service
+    participant I as inventory-service
+    participant P as payment-service
+    O->>I: GET /api/v1/inventory/{productId} (Feign, CB+Retry)
+    I-->>O: 200 stock available
+    O->>P: POST /api/v1/payments (Feign, CB+Retry)
+    P-->>O: 201 payment authorized
+    O->>O: mark order CONFIRMED
+      </pre>
+
+      <h3>Event-driven architecture</h3>
+      <pre class="mermaid">
+flowchart LR
+    os2[order-service] -->|order.created| t1[["topic: order-events"]]
+    os2 -->|order.cancelled| t1
+    pay2[payment-service] -->|payment.completed| t2[["topic: payment-events"]]
+    pay2 -->|payment.failed| t2
+    t1 --> is2[inventory-service\n reserve/release stock]
+    t2 --> ns2b[notification-service\n send email]
+    t2 --> os2b[order-service\n update status]
+      </pre>
+
+      <h3>Request flow — place an order</h3>
+      <pre class="mermaid">
+sequenceDiagram
+    actor U as User
+    participant GW as Gateway
+    participant O as order-service
+    participant I as inventory-service
+    participant P as payment-service
+    participant K as Kafka
+    participant N as notification-service
+    U->>GW: POST /orders (JWT)
+    GW->>GW: validate JWT, rate limit, add X-Correlation-Id
+    GW->>O: POST /orders
+    O->>I: check &amp; reserve stock (Feign)
+    I-->>O: reserved
+    O->>P: authorize payment (Feign)
+    P-->>O: authorized
+    O->>O: persist order, status=CONFIRMED
+    O->>K: publish order.created
+    O-->>GW: 201 Created
+    GW-->>U: 201 Created
+    K-->>N: consume order.created
+    N->>N: send confirmation email, log to email_logs
+      </pre>
+
+      <h3>Security architecture</h3>
+      <pre class="mermaid">
+flowchart TB
+    u[Client] -->|1. login| gw2[Gateway]
+    gw2 --> us2[user-service: /auth/login]
+    us2 -->|2. JWT access+refresh| gw2 --> u
+    u -->|3. request + Bearer JWT| gw2
+    gw2 -->|4. validate signature/exp, extract roles| filt[Gateway AuthN Filter]
+    filt -->|5. forward + X-User-Id/X-Roles headers| downstream[Downstream Service]
+    downstream -->|6. @PreAuthorize role check| method[Method-level Authorization]
+      </pre>
+
+      <h3>Deployment topology</h3>
+      <p>Multi-AZ cluster (3 nodes minimum across 3 zones). Stateless services scheduled with pod anti-affinity to spread replicas across zones; StatefulSets (Postgres) pinned per zone with async streaming replication to a standby in a second zone. Kafka runs as a 3-broker cluster (KRaft mode, no ZooKeeper) with <code>replication.factor=3</code>, <code>min.insync.replicas=2</code>.</p>
+
+      <h3>Key design decisions</h3>
+      <div class="table-wrap"><table>
+        <caption>Decisions &amp; rationale</caption>
+        <thead><tr><th>Decision</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td>Database per service</td><td>No cross-service SQL joins; enforces the API as the only integration surface.</td></tr>
+          <tr><td>Kafka for order/payment/notification chain</td><td>Order placement must survive a temporarily-down notification service; async decouples availability.</td></tr>
+          <tr><td>Feign (sync) for inventory check + payment authorization</td><td>Order creation needs a same-request answer — "can I sell this, was payment approved" — before committing.</td></tr>
+          <tr><td>Kubernetes-native discovery, no Eureka</td><td>The platform already runs on K8s; CoreDNS + ClusterIP gives service discovery for free with one less stateful system to run.</td></tr>
+          <tr><td>Gateway rejects unauthenticated traffic at the edge; every service independently re-validates via OAuth2 Resource Server</td><td>Defense in depth — a service stays safe to call directly (internal traffic, tests) without trusting the gateway blindly, and gets standards-correct 401-vs-403 semantics for free instead of a hand-rolled filter.</td></tr>
+          <tr><td>Virtual threads on every Tomcat-backed service (<code>spring.threads.virtual.enabled</code>)</td><td>These are I/O-bound services (JDBC, Feign, Kafka) — virtual threads remove the platform-thread-pool ceiling on concurrent requests at effectively no code change.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============ PART 2 ============ -->
+    <section class="part" id="part2">
+      <div class="part-label"><span class="num">PART 02</span></div>
+      <h2>Database Design</h2>
+      <p>Database-per-service. Each service owns its schema exclusively; no service reads another's tables directly. Cross-service references (e.g. an order's <code>customer_id</code>) are stored as opaque UUIDs with no FK constraint — referential integrity across services is enforced at the application/event level, not in SQL. Full Flyway migrations live at <code>&lt;service&gt;/src/main/resources/db/migration/</code>; this section shows the schema and the key DDL decisions.</p>
+
+      <h3>User Service — <code>users_db</code></h3>
+      <pre class="mermaid">
+erDiagram
+    USERS ||--o{ USER_ROLES : has
+    ROLES ||--o{ USER_ROLES : assigned
+    ROLES ||--o{ ROLE_PERMISSIONS : grants
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : included_in
+    USERS {
+      uuid id PK
+      varchar email UK
+      varchar password_hash
+      varchar first_name
+      varchar last_name
+      varchar status
+      timestamptz created_at
+      timestamptz updated_at
+      bigint version
+    }
+    ROLES { uuid id PK varchar name UK }
+    PERMISSIONS { uuid id PK varchar code UK }
+    USER_ROLES { uuid user_id FK uuid role_id FK }
+    ROLE_PERMISSIONS { uuid role_id FK uuid permission_id FK }
+      </pre>
+      <pre><code>CREATE TABLE users (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email           VARCHAR(255) NOT NULL,
+    password_hash   VARCHAR(255) NOT NULL,
+    first_name      VARCHAR(100) NOT NULL,
+    last_name       VARCHAR(100) NOT NULL,
+    status          VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    failed_login_attempts INT   NOT NULL DEFAULT 0,   -- brute-force protection, see Part 7
+    locked_until    TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    version         BIGINT       NOT NULL DEFAULT 0,
+    CONSTRAINT uq_users_email UNIQUE (email),
+    CONSTRAINT ck_users_status CHECK (status IN ('ACTIVE','LOCKED','DISABLED'))
+);
+CREATE INDEX idx_users_status ON users (status);
+
+CREATE TABLE roles (
+    id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name  VARCHAR(50) NOT NULL,
+    CONSTRAINT uq_roles_name UNIQUE (name)
+);
+
+CREATE TABLE permissions (
+    id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code  VARCHAR(100) NOT NULL,
+    CONSTRAINT uq_permissions_code UNIQUE (code)
+);
+
+CREATE TABLE user_roles (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_id UUID NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
+    PRIMARY KEY (user_id, role_id)
+);
+
+CREATE TABLE role_permissions (
+    role_id       UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE RESTRICT,
+    PRIMARY KEY (role_id, permission_id)
+);</code></pre>
+
+      <h3>Product Service — <code>products_db</code></h3>
+      <pre class="mermaid">
+erDiagram
+    CATEGORIES ||--o{ PRODUCTS : classifies
+    CATEGORIES ||--o{ CATEGORIES : parent_of
+    PRODUCTS {
+      uuid id PK
+      varchar sku UK
+      varchar name
+      text description
+      numeric price
+      uuid category_id FK
+      varchar status
+      timestamptz created_at
+    }
+    CATEGORIES { uuid id PK varchar name uuid parent_id FK }
+      </pre>
+      <pre><code>CREATE TABLE categories (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name       VARCHAR(120) NOT NULL,
+    parent_id  UUID REFERENCES categories(id) ON DELETE SET NULL,
+    CONSTRAINT uq_categories_name_parent UNIQUE (name, parent_id)
+);
+
+CREATE TABLE products (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sku           VARCHAR(64) NOT NULL,
+    name          VARCHAR(255) NOT NULL,
+    description   TEXT,
+    price         NUMERIC(12,2) NOT NULL,
+    category_id   UUID REFERENCES categories(id) ON DELETE SET NULL,
+    status        VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    version       BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT uq_products_sku UNIQUE (sku),
+    CONSTRAINT ck_products_price CHECK (price >= 0)
+);
+CREATE INDEX idx_products_category ON products (category_id);
+CREATE INDEX idx_products_name_trgm ON products USING gin (name gin_trgm_ops);</code></pre>
+
+      <h3>Inventory Service — <code>inventory_db</code></h3>
+      <pre class="mermaid">
+erDiagram
+    WAREHOUSES ||--o{ STOCK : holds
+    STOCK {
+      uuid id PK
+      uuid product_id
+      uuid warehouse_id FK
+      int quantity_on_hand
+      int quantity_reserved
+      timestamptz updated_at
+      bigint version
+    }
+    WAREHOUSES { uuid id PK varchar code UK varchar location }
+      </pre>
+      <pre><code>CREATE TABLE warehouses (
+    id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code     VARCHAR(20) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    CONSTRAINT uq_warehouses_code UNIQUE (code)
+);
+
+CREATE TABLE stock (
+    id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id         UUID NOT NULL,
+    warehouse_id       UUID NOT NULL REFERENCES warehouses(id) ON DELETE RESTRICT,
+    quantity_on_hand   INT NOT NULL DEFAULT 0,
+    quantity_reserved  INT NOT NULL DEFAULT 0,
+    updated_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    version            BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT uq_stock_product_warehouse UNIQUE (product_id, warehouse_id),
+    CONSTRAINT ck_stock_nonneg CHECK (quantity_on_hand >= 0 AND quantity_reserved >= 0),
+    CONSTRAINT ck_stock_reserved_lte_hand CHECK (quantity_reserved <= quantity_on_hand)
+);
+CREATE INDEX idx_stock_product ON stock (product_id);</code></pre>
+      <p><code>version</code> is a JPA <code>@Version</code> optimistic-lock column — stock decrements happen under high concurrency during flash sales, and optimistic locking with retry beats row-level pessimistic locks for throughput here.</p>
+
+      <h3>Order Service — <code>orders_db</code></h3>
+      <pre class="mermaid">
+erDiagram
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    ORDERS {
+      uuid id PK
+      uuid customer_id
+      varchar status
+      numeric total_amount
+      timestamptz created_at
+    }
+    ORDER_ITEMS {
+      uuid id PK
+      uuid order_id FK
+      uuid product_id
+      int quantity
+      numeric unit_price
+    }
+      </pre>
+      <pre><code>CREATE TABLE orders (
+    id            UUID NOT NULL DEFAULT gen_random_uuid(),
+    customer_id   UUID NOT NULL,
+    status        VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    total_amount  NUMERIC(12,2) NOT NULL,
+    idempotency_key VARCHAR(255),        -- see Part 3, Idempotency-Key
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    version       BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT ck_orders_status CHECK (status IN
+      ('PENDING','CONFIRMED','PAID','SHIPPED','DELIVERED','CANCELLED','FAILED')),
+    PRIMARY KEY (id, created_at)
+) PARTITION BY RANGE (created_at);
+CREATE UNIQUE INDEX uq_orders_idempotency_key ON orders (idempotency_key) WHERE idempotency_key IS NOT NULL;
+
+-- Transactional outbox (see Part 6) — same schema shape in payment-service's payments_db
+CREATE TABLE outbox_events (
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    aggregate_type VARCHAR(50) NOT NULL,
+    aggregate_id   UUID NOT NULL,
+    event_type     VARCHAR(50) NOT NULL,
+    topic          VARCHAR(100) NOT NULL,
+    payload        JSONB NOT NULL,
+    correlation_id VARCHAR(255),
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    published_at   TIMESTAMPTZ
+);
+CREATE INDEX idx_outbox_events_unpublished ON outbox_events (created_at) WHERE published_at IS NULL;
+
+CREATE TABLE orders_2026_q1 PARTITION OF orders
+  FOR VALUES FROM ('2026-01-01') TO ('2026-04-01');
+CREATE TABLE orders_2026_q2 PARTITION OF orders
+  FOR VALUES FROM ('2026-04-01') TO ('2026-07-01');
+-- new quarter partitions created ahead of time by a scheduled Flyway/cron job
+
+CREATE INDEX idx_orders_customer ON orders (customer_id, created_at DESC);
+CREATE INDEX idx_orders_status   ON orders (status) WHERE status NOT IN ('DELIVERED','CANCELLED');
+
+CREATE TABLE order_items (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id    UUID NOT NULL,
+    order_created_at TIMESTAMPTZ NOT NULL,
+    product_id  UUID NOT NULL,
+    quantity    INT NOT NULL,
+    unit_price  NUMERIC(12,2) NOT NULL,
+    CONSTRAINT ck_order_items_qty CHECK (quantity > 0),
+    FOREIGN KEY (order_id, order_created_at) REFERENCES orders(id, created_at) ON DELETE CASCADE
+);
+CREATE INDEX idx_order_items_order ON order_items (order_id);</code></pre>
+      <p>Orders are range-partitioned by <code>created_at</code> quarterly — order volume is append-heavy and time-ordered, most reads target the current quarter, and old partitions can be moved to cheaper storage or dropped once past the retention window without a full table scan.</p>
+
+      <h3>Payment Service — <code>payments_db</code></h3>
+      <pre class="mermaid">
+erDiagram
+    PAYMENTS ||--o{ TRANSACTIONS : records
+    PAYMENTS {
+      uuid id PK
+      uuid order_id
+      varchar status
+      numeric amount
+      varchar method
+    }
+    TRANSACTIONS {
+      uuid id PK
+      uuid payment_id FK
+      varchar type
+      varchar gateway_ref
+      timestamptz created_at
+    }
+      </pre>
+      <pre><code>CREATE TABLE payments (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id    UUID NOT NULL,
+    status      VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    amount      NUMERIC(12,2) NOT NULL,
+    method      VARCHAR(30) NOT NULL,
+    idempotency_key VARCHAR(255),        -- see Part 3, Idempotency-Key
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    version     BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT uq_payments_order UNIQUE (order_id),
+    CONSTRAINT ck_payments_status CHECK (status IN ('PENDING','AUTHORIZED','CAPTURED','FAILED','REFUNDED'))
+);
+CREATE UNIQUE INDEX uq_payments_idempotency_key ON payments (idempotency_key) WHERE idempotency_key IS NOT NULL;
+-- plus an outbox_events table identical in shape to order-service's (Part 2, Order Service)
+
+CREATE TABLE transactions (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    payment_id   UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
+    type         VARCHAR(20) NOT NULL,
+    gateway_ref  VARCHAR(255),
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT ck_transactions_type CHECK (type IN ('AUTH','CAPTURE','REFUND','VOID'))
+);
+CREATE INDEX idx_transactions_payment ON transactions (payment_id);</code></pre>
+
+      <h3>Notification Service — <code>notifications_db</code></h3>
+      <pre><code>CREATE TABLE notification_events (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_type  VARCHAR(50) NOT NULL,
+    source_id   UUID NOT NULL,
+    payload     JSONB NOT NULL,
+    status      VARCHAR(20) NOT NULL DEFAULT 'RECEIVED',
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT ck_notification_events_status CHECK (status IN ('RECEIVED','PROCESSED','FAILED')),
+    -- Kafka's at-least-once delivery means this consumer can see the same event twice after a
+    -- rebalance; this constraint is the dedup key (see Part 6, consumer idempotency) — payment-
+    -- service's payments.order_id is already UNIQUE, so (event_type, source_id) is too.
+    CONSTRAINT uq_notification_events_type_source UNIQUE (event_type, source_id)
+);
+CREATE INDEX idx_notification_events_source ON notification_events (source_id);
+
+CREATE TABLE email_logs (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id     UUID REFERENCES notification_events(id) ON DELETE SET NULL,
+    recipient    VARCHAR(255) NOT NULL,
+    subject      VARCHAR(255) NOT NULL,
+    status       VARCHAR(20) NOT NULL DEFAULT 'QUEUED',
+    sent_at      TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT ck_email_logs_status CHECK (status IN ('QUEUED','SENT','FAILED'))
+);
+CREATE INDEX idx_email_logs_recipient ON email_logs (recipient, created_at DESC);</code></pre>
+
+      <h4>Cross-cutting rules</h4>
+      <ul>
+        <li><strong>Primary keys:</strong> UUID (<code>gen_random_uuid()</code>, pgcrypto) everywhere — safe to generate client-side, no cross-shard collision risk, doesn't leak sequential order counts.</li>
+        <li><strong>Foreign keys:</strong> only within a service's own schema. Cross-service references are plain UUID columns, validated at the application layer against the owning service's API/event stream, never via DB constraint.</li>
+        <li><strong>Optimistic locking:</strong> every mutable aggregate root carries a <code>version</code> column mapped to JPA <code>@Version</code>.</li>
+        <li><strong>Migrations:</strong> Flyway, one file per change, naming <code>V{n}__{description}.sql</code>, never edited after merge — see <code>order-service/src/main/resources/db/migration/V1__init_orders.sql</code> for the full reference implementation.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PART 3 ============ -->
+    <section class="part" id="part3">
+      <div class="part-label"><span class="num">PART 03</span></div>
+      <h2>API Design</h2>
+
+      <h3>Conventions</h3>
+      <div class="table-wrap"><table>
+        <tbody>
+          <tr><th>Versioning</th><td>URI-based: <code>/api/v1/orders</code>. A breaking change ships as <code>/api/v2/...</code> alongside v1 until consumers migrate; additive changes (new optional fields) stay on v1.</td></tr>
+          <tr><th>Pagination</th><td><code>?page=0&amp;size=20</code> (zero-indexed), response wraps content in a <code>Page&lt;T&gt;</code> envelope with <code>totalElements</code>, <code>totalPages</code>.</td></tr>
+          <tr><th>Sorting</th><td><code>?sort=createdAt,desc&amp;sort=totalAmount,asc</code> — repeatable param, applied in order.</td></tr>
+          <tr><th>Filtering</th><td><code>?status=CONFIRMED&amp;customerId=...&amp;createdAfter=2026-01-01</code> — resolved server-side via Spring Data JPA <code>Specification</code>, documented per-endpoint in OpenAPI.</td></tr>
+          <tr><th>Errors</th><td>RFC 7807 <code>application/problem+json</code> — see below.</td></tr>
+          <tr><th>OpenAPI</th><td>Currently unavailable: springdoc-openapi 2.8.17 (the latest release) still targets Spring Boot 3's package layout and throws <code>NoClassDefFoundError</code> against Boot 4.1's relocated <code>WebMvcProperties</code> (now <code>org.springframework.boot.webmvc.autoconfigure</code>), so it's been pulled from all six services pending a Boot-4-compatible springdoc release. No hand-rolled OpenAPI YAML fills the gap — endpoints are documented in this doc (see the per-service API tables) and exercised directly via the <a href="#part21">Postman collection</a> instead.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Order API — representative contract</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Method</th><th>Path</th><th>Purpose</th><th>Auth</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill ok">GET</span></td><td><code>/api/v1/orders</code></td><td>Paginated, filtered, sorted list</td><td>CUSTOMER (own), MANAGER/ADMIN (all)</td></tr>
+          <tr><td><span class="pill ok">GET</span></td><td><code>/api/v1/orders/{id}</code></td><td>Get one</td><td>owner or MANAGER/ADMIN</td></tr>
+          <tr><td><span class="pill warn">POST</span></td><td><code>/api/v1/orders</code></td><td>Create order</td><td>CUSTOMER</td></tr>
+          <tr><td><span class="pill warn">PUT</span></td><td><code>/api/v1/orders/{id}</code></td><td>Replace order (pre-CONFIRMED only)</td><td>owner</td></tr>
+          <tr><td><span class="pill warn">PATCH</span></td><td><code>/api/v1/orders/{id}/status</code></td><td>Transition status</td><td>MANAGER/ADMIN, or system (internal)</td></tr>
+          <tr><td><span class="pill crit">DELETE</span></td><td><code>/api/v1/orders/{id}</code></td><td>Cancel (soft, status=CANCELLED)</td><td>owner or ADMIN</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>POST /api/v1/orders — request</h4>
+      <pre><code>POST /api/v1/orders
+Idempotency-Key: 5c1e2b7a-...-optional-client-generated-key
+
+{
+  "customerId": "9c2f...e11a",
+  "items": [
+    { "productId": "7ab1...c02d", "quantity": 2 }
+  ]
+}</code></pre>
+      <h4>201 response (first request) / 200 response (replay)</h4>
+      <pre><code>{
+  "id": "b410...9f3e",
+  "customerId": "9c2f...e11a",
+  "status": "CONFIRMED",
+  "totalAmount": 139.98,
+  "items": [
+    { "productId": "7ab1...c02d", "quantity": 2, "unitPrice": 69.99 }
+  ],
+  "createdAt": "2026-07-22T10:14:03Z"
+}</code></pre>
+      <h4>Idempotency-Key (order-service and payment-service <code>POST</code> endpoints)</h4>
+      <p>An optional client-supplied header, stored on a nullable, partial-unique-indexed column (<code>CREATE UNIQUE INDEX ... WHERE idempotency_key IS NOT NULL</code>, so rows without one never collide). On write, the service checks for an existing row with that key first; if found, it returns the original result unchanged — <code>200</code>, not <code>201</code>, so the client can tell "already happened" from "just happened" — instead of re-running the mutation (re-authorizing a payment, re-reserving inventory). A concurrent duplicate that races past the initial check is caught via <code>saveAndFlush</code> + a caught <code>DataIntegrityViolationException</code> on the unique-index violation, rather than a distributed lock: whichever request wins the insert is authoritative, the loser looks the winner's row up and returns it the same way a genuine replay would. This is what makes a client's retry-on-timeout safe — without it, a network timeout on an otherwise-successful <code>POST /orders</code> leaves the client unable to tell "never arrived" from "arrived, order placed, response lost," and a naive retry double-charges the customer.</p>
+      <h4>Validation rules (Bean Validation)</h4>
+      <ul>
+        <li><code>customerId</code>: <code>@NotNull</code></li>
+        <li><code>items</code>: <code>@NotEmpty</code>, each item <code>@Valid</code></li>
+        <li><code>quantity</code>: <code>@Min(1)</code>, <code>@Max(999)</code></li>
+      </ul>
+      <h4>Standard error response (RFC 9457)</h4>
+      <pre><code>{
+  "type": "https://api.company.com/problems/validation-error",
+  "title": "Validation Failed",
+  "status": 400,
+  "detail": "items[0].quantity must be greater than 0",
+  "instance": "/api/v1/orders",
+  "correlationId": "3f7a9c21-..."
+}</code></pre>
+      <p>Produced by returning Spring's native <code>ProblemDetail</code> directly from each <code>@ExceptionHandler</code> — no hand-rolled error DTO. Spring MVC derives both the response status and the <code>application/problem+json</code> content type from the returned object; <code>correlationId</code> is attached as an RFC 9457 extension property via <code>ProblemDetail#setProperty</code>. Full request/response DTOs, OpenAPI YAML, and the global exception handler mapping every domain exception to a status + problem type live in <code>order-service</code> (see <a href="#part21">repository layout</a>) — the pattern is identical across all six services.</p>
+    </section>
+
+    <!-- ============ PART 4 ============ -->
+    <section class="part" id="part4">
+      <div class="part-label"><span class="num">PART 04</span></div>
+      <h2>Spring Boot Development Structure</h2>
+      <p>Every service follows the same package layout, so once one is understood, all six are. <code>order-service</code> is the fully-implemented reference; the other five follow the identical shape with their own domain objects.</p>
+      <div class="tree">com.ecommerce.order
+├── controller/       REST endpoints, no business logic
+├── service/          interfaces + impl, orchestrates use cases
+├── repository/        Spring Data JPA + JPA Specifications
+├── entity/           JPA aggregates
+├── dto/              request/response records, never expose entities
+├── mapper/           MapStruct entity &lt;-&gt; dto
+├── config/           Feign, Kafka, Resilience4j, CORS beans
+├── security/         JWT filter, SecurityConfig, method security
+├── exception/        domain exceptions + GlobalExceptionHandler
+├── event/            Kafka event DTOs + producer
+└── integration/      Feign clients + fallback factories</div>
+      <p>SOLID is enforced structurally: controllers depend on service <em>interfaces</em> (dependency inversion), each mapper/service has one reason to change (single responsibility), new order status transitions extend a strategy map rather than branching further (open/closed), Feign fallbacks implement the same interface as the live client (Liskov), and clients only see the methods they call (interface segregation — e.g. <code>InventoryReadClient</code> vs a hypothetical write client).</p>
+    </section>
+
+    <!-- ============ PART 5 ============ -->
+    <section class="part" id="part5">
+      <div class="part-label"><span class="num">PART 05</span></div>
+      <h2>Service Discovery — Kubernetes Native</h2>
+      <p>No Eureka, no Consul. Kubernetes' built-in Service + CoreDNS <em>is</em> the service registry — running a second discovery system on top of a platform that already provides one is pure overhead. order-service's Feign clients (<code>InventoryClient</code>, <code>PaymentClient</code>, <code>ProductClient</code>) are declared with just <code>@FeignClient(name = "product-service")</code> — no explicit <code>url</code> — so resolution goes through Spring Cloud LoadBalancer, which needs <em>some</em> <code>DiscoveryClient</code> to ask "where is product-service?" Since there's no Eureka/Consul, that's Spring Cloud Commons' <code>SimpleDiscoveryClient</code>: a static, profile-scoped instance list, not a live registry.</p>
+      <h4>How order-service finds product-service</h4>
+      <ol>
+        <li>product-service Deployment pods are fronted by a <code>Service</code> named <code>product-service</code>, <code>type: ClusterIP</code>, listening on port 80 and forwarding to the pod's actual container port.</li>
+        <li>Kubernetes assigns that Service a stable virtual IP and registers <code>product-service.ecommerce.svc.cluster.local</code> in CoreDNS (short form <code>product-service</code> resolves within the same namespace).</li>
+        <li>order-service's <code>kubernetes</code>-profile config registers that DNS name (no port — the Service already remaps 80 → the container's real port) as the one static instance <code>SimpleDiscoveryClient</code> hands back for <code>product-service</code>.</li>
+        <li>kube-proxy load-balances requests to that ClusterIP across all healthy pod endpoints (only pods passing their readiness probe are in the Endpoints list).</li>
+      </ol>
+      <pre><code>// order-service/src/main/resources/application.yml — profile: kubernetes
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            product-service[0]:
+              uri: http://product-service.ecommerce.svc.cluster.local   # Service remaps 80 -> container port</code></pre>
+      <div class="note">
+        <p><strong>Docker Compose has no Service layer, so it needs real ports.</strong> Plain <code>docker compose</code> networking resolves a service name to the container directly — there's no ClusterIP standing in front of it remapping port 80. The <code>docker</code>-profile block for the same property therefore points straight at each container's actual listening port:</p>
+        <pre><code>// order-service/src/main/resources/application.yml — profile: docker
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            product-service[0]:
+              uri: http://product-service:8082   # the container's real port, not 80</code></pre>
+        <p>The same pattern applies to <code>inventory-service</code> and <code>payment-service</code>. gateway-service's own routes have the identical split — the base route <code>uri</code>s assume a K8s Service on port 80, with a <code>docker</code>-profile override supplying each service's literal port (see Part 21).</p>
+      </div>
+      <div class="table-wrap"><table>
+        <tbody>
+          <tr><th>Pod replacement</th><td>When a pod dies, the Deployment controller schedules a replacement; kubelet updates the Endpoints object as soon as the new pod passes its readiness probe. Callers never see a stale IP — they only ever resolve the Service's virtual IP, which never changes.</td></tr>
+          <tr><th>CoreDNS</th><td>Cluster add-on watching the K8s API for Service/Endpoint changes, serving DNS records for every Service automatically — no manual registration step, unlike Eureka's client-side self-registration.</td></tr>
+          <tr><th>Headless services</th><td>Used only for the Postgres StatefulSet, where callers need per-pod addressability (<code>postgres-0.postgres.data.svc</code>) instead of load-balanced access.</td></tr>
+          <tr><th>Why SimpleDiscoveryClient and not just a hardcoded Feign <code>url</code></th><td>A hardcoded per-client <code>url</code> works too, but <code>SimpleDiscoveryClient</code> keeps every cross-service address in one place (<code>spring.cloud.discovery.client.simple.instances</code>) instead of scattered across each <code>@FeignClient</code>'s config block, and is a drop-in upgrade path to a real <code>DiscoveryClient</code> (Eureka, Consul, spring-cloud-kubernetes) later without touching the Feign interfaces themselves.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============ PART 6 ============ -->
+    <section class="part" id="part6">
+      <div class="part-label"><span class="num">PART 06</span></div>
+      <h2>Inter-Service Communication</h2>
+      <p>Synchronous OpenFeign where the caller needs an answer before it can proceed (can we sell this? was payment approved?). Kafka where the producer doesn't need to know who's listening, or the consumer can safely react after the fact.</p>
+
+      <h3>Propagating the caller's JWT across Feign calls</h3>
+      <p>The gateway isn't a trust boundary (see <a href="#part7">Part 7</a>) — inventory-service and payment-service each independently validate the bearer token on every request, including ones that arrive from order-service rather than the gateway. That means order-service's Feign calls have to carry the <em>original customer's</em> token forward, not call downstream anonymously or with some service-account credential. A shared <code>FeignClientConfig</code> <code>RequestInterceptor</code> does this by reading the inbound request's <code>Authorization</code> header off <code>RequestContextHolder</code> and copying it onto every outbound Feign request:</p>
+      <pre><code>// config/FeignClientConfig.java
+@Bean
+public RequestInterceptor bearerTokenPropagationInterceptor() {
+    return template -> {
+        var attributes = RequestContextHolder.getRequestAttributes();
+        if (attributes instanceof ServletRequestAttributes servletAttributes) {
+            String authorization = servletAttributes.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
+            if (authorization != null) {
+                template.header(HttpHeaders.AUTHORIZATION, authorization);
+            }
+        }
+    };
+}</code></pre>
+      <p>Skipping this is a quiet failure mode worth naming explicitly: without it, every Feign call downstream still succeeds at the network level and still gets a well-formed HTTP response — just a <code>401</code>, because the callee's own OAuth2 Resource Server config correctly rejects the missing token. inventory-service also scopes its <code>POST /reserve</code> and <code>POST /release</code> endpoints to <code>CUSTOMER, MANAGER, ADMIN</code> rather than <code>MANAGER, ADMIN</code> like <code>POST /stock</code> — those two are invoked <em>as</em> the customer placing/cancelling an order, carrying that customer's own role, not an elevated one.</p>
+
+      <h3>order-service → inventory-service (Feign, synchronous)</h3>
+      <pre><code>// integration/InventoryClient.java
+@FeignClient(name = "inventory-service", configuration = FeignClientConfig.class,
+             fallbackFactory = InventoryClientFallbackFactory.class)
+public interface InventoryClient {
+    @GetMapping("/api/v1/inventory/{productId}/availability")
+    StockAvailabilityResponse checkAvailability(@PathVariable UUID productId,
+                                                 @RequestParam int quantity);
+
+    @PostMapping("/api/v1/inventory/{productId}/reserve")
+    void reserve(@PathVariable UUID productId, @RequestBody ReserveStockRequest request);
+}
+
+// integration/InventoryClientFallbackFactory.java
+@Component
+public class InventoryClientFallbackFactory implements FallbackFactory&lt;InventoryClient&gt; {
+    public InventoryClient create(Throwable cause) {
+        return new InventoryClient() {
+            public StockAvailabilityResponse checkAvailability(UUID productId, int quantity) {
+                throw new InventoryUnavailableException(productId, cause);
+            }
+            public void reserve(UUID productId, ReserveStockRequest request) {
+                throw new InventoryUnavailableException(productId, cause);
+            }
+        };
+    }
+}</code></pre>
+
+      <h3>order-service → payment-service (Feign, synchronous)</h3>
+      <pre><code>@FeignClient(name = "payment-service", fallbackFactory = PaymentClientFallbackFactory.class)
+public interface PaymentClient {
+    @PostMapping("/api/v1/payments/authorize")
+    PaymentAuthorizationResponse authorize(@RequestBody AuthorizePaymentRequest request);
+}</code></pre>
+
+      <h3>payment-service → notification-service (Kafka, asynchronous — transactional outbox)</h3>
+      <p>Producers don't call <code>KafkaTemplate</code> from the request thread. A direct "save the row, then publish to Kafka" dual write has a gap: a crash (or just a slow/failed broker) between the two silently drops the event, with the row committed and no one downstream ever notified. Instead, the event is written to an <code>outbox_events</code> table in the <em>same transaction</em> as the business row, so both commit or both roll back atomically; a separate <code>@Scheduled</code> poller drains unpublished rows to Kafka every 500ms and marks them published on success, retrying untouched on any send failure:</p>
+      <pre><code>// payment-service: event/PaymentEventProducer.java — runs inside the same @Transactional method that saves the Payment
+@Component
+@RequiredArgsConstructor
+public class PaymentEventProducer {
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
+
+    public void publishCompleted(Payment payment) {
+        var event = new PaymentCompletedEvent(payment.getId(), payment.getOrderId(),
+                payment.getAmount(), Instant.now());
+        outboxEventRepository.save(OutboxEvent.of("Payment", payment.getOrderId(), "PaymentCompletedEvent",
+                "payment-events", objectMapper.writeValueAsString(event),
+                MDC.get(CorrelationIdConstants.MDC_KEY)));   // captured now — the poller below runs on an
+    }                                                        // unrelated scheduler thread with no MDC of its own
+}
+
+// payment-service: event/OutboxPublisher.java
+@Component
+@RequiredArgsConstructor
+public class OutboxPublisher {
+    private final OutboxEventRepository outboxEventRepository;
+    private final KafkaTemplate&lt;String, String&gt; outboxKafkaTemplate;
+
+    @Scheduled(fixedDelay = 500)
+    public void publishPending() {
+        for (OutboxEvent event : outboxEventRepository.findTop100ByPublishedAtIsNullOrderByCreatedAtAsc()) {
+            try {
+                var record = new ProducerRecord&lt;&gt;(event.getTopic(), null,
+                        event.getAggregateId().toString(), event.getPayload());
+                if (event.getCorrelationId() != null) {
+                    record.headers().add(CorrelationIdConstants.HEADER,
+                            event.getCorrelationId().getBytes(UTF_8));
+                }
+                outboxKafkaTemplate.send(record).get();
+                event.markPublished();
+                outboxEventRepository.save(event);
+            } catch (Exception e) {
+                // left unpublished — picked up again next poll
+            }
+        }
+    }
+}
+
+// notification-service: event/PaymentEventConsumer.java
+@Component
+@RequiredArgsConstructor
+public class PaymentEventConsumer {
+    private final EmailService emailService;
+    private final NotificationEventRepository notificationEventRepository;
+
+    @KafkaListener(topics = "payment-events", groupId = "notification-service",
+                   containerFactory = "paymentEventListenerFactory")
+    @Transactional
+    public void onPaymentCompleted(PaymentCompletedEvent event,
+            @Header(name = CorrelationIdConstants.HEADER, required = false) String correlationId) {
+        if (correlationId != null) MDC.put(CorrelationIdConstants.MDC_KEY, correlationId);
+        try {
+            // at-least-once delivery means this can be redelivered after a rebalance —
+            // dedupe on (eventType, sourceId) before doing anything with side effects
+            if (notificationEventRepository.existsByEventTypeAndSourceId("payment.completed", event.orderId())) {
+                return;
+            }
+            notificationEventRepository.saveAndFlush(NotificationEvent.receive(/* ... */));
+            emailService.sendPaymentConfirmation(event.orderId(), event.amount());
+        } finally {
+            MDC.remove(CorrelationIdConstants.MDC_KEY);
+        }
+    }
+}</code></pre>
+      <p>Two things worth calling out. First, the outbox row's payload is written as a pre-serialized JSON string (<code>ObjectMapper#writeValueAsString</code>), and <code>OutboxPublisher</code> sends it via a plain <code>KafkaTemplate&lt;String, String&gt;</code> — byte-identical on the wire to what a <code>JacksonJsonSerializer&lt;Object&gt;</code> producer would have sent, so <code>JacksonJsonDeserializer</code> consumers are unaffected by which producer-side approach wrote it. Second, the correlation id has to be captured into the outbox row <em>at write time</em>, not read from MDC again inside <code>OutboxPublisher</code> — MDC is thread-bound, and the poller runs on a completely different thread (a <code>@Scheduled</code> task) than the HTTP request that created the row, sometimes seconds later. Persisting it is the only way to carry a request's trace across that async gap; <code>PaymentEventConsumer</code> then restores it into its own MDC for the duration of processing, so a payment failure that only shows up three services downstream is still one <code>correlationId</code> query away from the original HTTP request in Kibana.</p>
+
+      <h3>Consumer error handling: retry + dead-letter topic</h3>
+      <p>Before this, only Kafka deserialization failures were handled (via <code>ErrorHandlingDeserializer</code>) — a genuine processing exception inside the listener (a transient DB outage, a bug) caused the container to redeliver the same record forever, silently stalling that partition. A <code>DefaultErrorHandler</code> bounds that: three retries, 1s apart, then the record is routed to <code>payment-events.DLT</code> via a <code>DeadLetterPublishingRecoverer</code> and the offset is committed, so one poison message can't block everything behind it.</p>
+      <pre><code>// notification-service: config/KafkaConsumerConfig.java
+@Bean
+public DefaultErrorHandler kafkaErrorHandler(KafkaTemplate&lt;String, Object&gt; dlqKafkaTemplate) {
+    var recoverer = new DeadLetterPublishingRecoverer(dlqKafkaTemplate);
+    return new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3L));
+}
+
+@Bean
+public ConcurrentKafkaListenerContainerFactory&lt;String, PaymentCompletedEvent&gt; paymentEventListenerFactory(
+        ConsumerFactory&lt;String, PaymentCompletedEvent&gt; paymentEventConsumerFactory,
+        DefaultErrorHandler kafkaErrorHandler) {
+    var factory = new ConcurrentKafkaListenerContainerFactory&lt;String, PaymentCompletedEvent&gt;();
+    factory.setConsumerFactory(paymentEventConsumerFactory);
+    factory.setCommonErrorHandler(kafkaErrorHandler);
+    return factory;
+}</code></pre>
+
+      <h3>Kafka configuration (producer side)</h3>
+      <pre><code>spring:
+  kafka:
+    bootstrap-servers: kafka-broker-0.kafka:9092,kafka-broker-1.kafka:9092,kafka-broker-2.kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.ecommerce.common.event
+    topics:
+      order-events: { partitions: 6, replication-factor: 3 }
+      payment-events: { partitions: 6, replication-factor: 3 }</code></pre>
+    </section>
+
+    <!-- ============ PART 7 ============ -->
+    <section class="part" id="part7">
+      <div class="part-label"><span class="num">PART 07</span></div>
+      <h2>Security</h2>
+      <h3>JWT flow</h3>
+      <pre class="mermaid">
+sequenceDiagram
+    actor C as Client
+    participant U as user-service
+    C->>U: POST /auth/login {email,password}
+    U->>U: verify BCrypt hash
+    U-->>C: 200 {accessToken (15m), refreshToken (7d)}
+    C->>U: POST /auth/refresh {refreshToken}
+    U->>U: validate refresh token (DB-backed, revocable)
+    U-->>C: 200 {new accessToken}
+      </pre>
+      <pre><code>// security/JwtService.java
+@Component
+public class JwtService {
+    @Value("${security.jwt.secret}") private String secret;
+    @Value("${security.jwt.access-ttl-minutes}") private long accessTtl;
+
+    public String generateAccessToken(User user) {
+        return Jwts.builder()
+            .subject(user.getId().toString())
+            .claim("roles", user.getRoles().stream().map(Role::getName).toList())
+            .issuedAt(new Date())
+            .expiration(Date.from(Instant.now().plus(accessTtl, ChronoUnit.MINUTES)))
+            .signWith(signingKey(), Jwts.SIG.HS512)
+            .compact();
+    }
+
+    public Jws&lt;Claims&gt; validate(String token) {
+        return Jwts.parser().verifyWith(signingKey()).build().parseSignedClaims(token);
+    }
+}</code></pre>
+      <h4>Refresh token flow</h4>
+      <p>Refresh tokens are opaque UUIDs persisted in <code>users_db.refresh_tokens</code> (hash only, with <code>expires_at</code> and <code>revoked_at</code>) — not JWTs themselves, so a compromised refresh token can be revoked server-side instantly, which a stateless JWT refresh token cannot.</p>
+
+      <h3>Spring Security configuration (OAuth2 Resource Server, per downstream service)</h3>
+      <p>Each service validates the JWT via Spring Security's OAuth2 Resource Server support — <code>spring-boot-starter-oauth2-resource-server</code> + a <code>NimbusJwtDecoder</code> built from the shared HMAC secret — rather than a hand-rolled <code>OncePerRequestFilter</code>. The "roles" claim is mapped to <code>ROLE_*</code> authorities via <code>JwtGrantedAuthoritiesConverter</code>, so <code>hasRole()</code>/<code>hasAnyRole()</code> below are unchanged, and an invalid or expired bearer token now correctly produces <code>401</code> (via <code>BearerTokenAuthenticationEntryPoint</code>) instead of a filter silently clearing the security context.</p>
+      <pre><code>@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    JwtDecoder jwtDecoder(@Value("${security.jwt.secret}") String secret) {
+        var key = new SecretKeySpec(secret.getBytes(UTF_8), "HmacSHA512");
+        return NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS512).build();
+    }
+
+    @Bean
+    JwtAuthenticationConverter jwtAuthenticationConverter() {
+        var authorities = new JwtGrantedAuthoritiesConverter();
+        authorities.setAuthoritiesClaimName("roles");
+        authorities.setAuthorityPrefix("ROLE_");
+        var converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authorities);
+        return converter;
+    }
+
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http, JwtDecoder jwtDecoder,
+                                     JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
+        return http
+            .csrf(CsrfConfigurer::disable)          // stateless, token-based API — no cookie session to forge
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/actuator/health/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/orders/**").hasAnyRole("CUSTOMER","MANAGER","ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/v1/orders").hasRole("CUSTOMER")
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/orders/*/status").hasAnyRole("MANAGER","ADMIN")
+                .anyRequest().authenticated())
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt
+                .decoder(jwtDecoder)
+                .jwtAuthenticationConverter(jwtAuthenticationConverter)))
+            .build();
+    }
+}</code></pre>
+
+      <h3>RBAC model</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Role</th><th>Can</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill ok">CUSTOMER</span></td><td>Create/view own orders, view catalog, manage own profile</td></tr>
+          <tr><td><span class="pill warn">MANAGER</span></td><td>All CUSTOMER permissions + view/update any order status, manage inventory/products</td></tr>
+          <tr><td><span class="pill crit">ADMIN</span></td><td>All permissions + user/role management, refunds, system configuration</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Password encryption</h4>
+      <p><code>BCryptPasswordEncoder</code>, strength 12. Never logged, never returned in any DTO (entity → DTO mapper simply has no mapping for the field).</p>
+      <h4>Brute-force protection</h4>
+      <p>Two independent layers, since either one bypassed on its own (a script hitting user-service directly on <code>:8081</code>, skipping the gateway) shouldn't leave login unprotected. At the gateway, the <code>/users/auth/**</code> route carries its own <code>RequestRateLimiter</code>, keyed by remote IP rather than the platform-wide <code>userKeyResolver</code> (there's no <code>X-User-Id</code> yet pre-login, so every anonymous caller would otherwise share one global bucket) at a much stricter rate than general API traffic:</p>
+      <pre><code># gateway-service/application.yml
+- id: user-service-auth
+  predicates: [ "Path=/users/auth/**" ]
+  filters:
+    - name: RequestRateLimiter
+      args:
+        redis-rate-limiter.replenishRate: 2
+        redis-rate-limiter.burstCapacity: 5
+        key-resolver: "#{@ipKeyResolver}"</code></pre>
+      <p>Defense in depth, in user-service itself: each <code>User</code> row tracks <code>failed_login_attempts</code> and <code>locked_until</code>. Five consecutive failures locks the account for 15 minutes (<code>423 Locked</code> on any login attempt in that window, checked <em>before</em> the password comparison so a locked-out account can't keep being probed for free); a successful login resets the counter. This does mean a locked response is distinguishable from "wrong password" — a small, accepted enumeration tradeoff, since the alternative is telling a legitimately locked-out user nothing about why they can't log in.</p>
+      <pre><code>// user-service: entity/User.java
+public void recordFailedLogin() {
+    failedLoginAttempts++;
+    if (failedLoginAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+        lockedUntil = Instant.now().plus(LOCKOUT_MINUTES, ChronoUnit.MINUTES);
+    }
+}</code></pre>
+      <h4>CORS</h4>
+      <p>Configured once at the gateway (Spring Cloud Gateway's <code>globalcors</code>, not Spring Security — the gateway is reactive/WebFlux and has no <code>SecurityFilterChain</code> of its own) with an explicit allow-list of origins, no wildcard <code>*</code>. <code>allowCredentials</code> stays <code>false</code>: auth is a bearer token in the <code>Authorization</code> header, not a cookie, so there's no session credential for a credentialed cross-origin request to leak. Downstream services trust the gateway and don't re-implement CORS.</p>
+      <pre><code># gateway-service/application.yml
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+                allowedMethods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS ]
+                allowedHeaders: [ Authorization, Content-Type, Idempotency-Key, X-Correlation-Id ]
+                exposedHeaders: [ X-Correlation-Id, Location ]
+                allowCredentials: false</code></pre>
+      <h4>Security headers</h4>
+      <p>Set at two layers for the same reason as brute-force protection above: the gateway (a <code>GlobalFilter</code>, since every browser-facing response passes through it) and, redundantly, each service's own <code>SecurityConfig</code>, so calling a service directly still gets the same hardening the JWT check already gives it. Every response here is JSON, never HTML, so the policy is maximally restrictive rather than tuned for a page that renders anything: <code>Content-Security-Policy: default-src 'none'; frame-ancestors 'none'</code>, <code>Referrer-Policy: no-referrer</code>, <code>Permissions-Policy</code> disabling geolocation/camera/microphone/payment, plus <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, and (gateway only, since it's the actual TLS-terminating edge) <code>Strict-Transport-Security</code>.</p>
+      <pre><code>// each service: security/SecurityConfig.java
+.headers(headers -> headers
+    .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'none'; frame-ancestors 'none'"))
+    .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+    .permissionsPolicyHeader(permissions -> permissions.policy(
+            "geolocation=(), camera=(), microphone=(), payment=()")))</code></pre>
+      <h4>CSRF</h4>
+      <p>Disabled cluster-wide. This is a token-authenticated API with no browser-managed session cookie, so there's no ambient credential for CSRF to hijack — CSRF protection is a session-cookie concern.</p>
+    </section>
+
+    <!-- ============ PART 8 ============ -->
+    <section class="part" id="part8">
+      <div class="part-label"><span class="num">PART 08</span></div>
+      <h2>API Gateway</h2>
+      <pre><code># gateway-service/src/main/resources/application.yml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://user-service
+          predicates: [ "Path=/users/**" ]
+          filters: [ StripPrefix=0, "CircuitBreaker=name=userServiceCB" ]
+        - id: product-service
+          uri: http://product-service
+          predicates: [ "Path=/products/**" ]
+        - id: inventory-service
+          uri: http://inventory-service
+          predicates: [ "Path=/inventory/**" ]
+        - id: order-service
+          uri: http://order-service
+          predicates: [ "Path=/orders/**" ]
+          filters:
+            - name: RequestRateLimiter
+              args: { redis-rate-limiter.replenishRate: 50, redis-rate-limiter.burstCapacity: 100 }
+        - id: payment-service
+          uri: http://payment-service
+          predicates: [ "Path=/payments/**" ]
+        - id: user-service-auth
+          predicates: [ "Path=/users/auth/**" ]
+          filters:
+            - name: RequestRateLimiter    # stricter, IP-keyed — see Part 7, Brute-force protection
+              args: { redis-rate-limiter.replenishRate: 2, redis-rate-limiter.burstCapacity: 5, key-resolver: "#{@ipKeyResolver}" }</code></pre>
+      <p>Gateway-level <code>GlobalFilter</code>s (ordered): correlation ID assignment → JWT validation → rate limiting → security response headers → structured request/response logging. Auth, rate limiting, CORS (<code>globalcors</code>, see Part 7), and security headers are all applied gateway-wide rather than per-route, so every route gets them without repetition.</p>
+      <h3>Request lifecycle</h3>
+      <ol>
+        <li>NGINX Ingress terminates TLS, forwards to gateway Service.</li>
+        <li><code>CorrelationIdGlobalFilter</code> — reads or generates <code>X-Correlation-Id</code>, adds it to the outgoing request and the eventual response.</li>
+        <li><code>JwtAuthenticationGlobalFilter</code> — rejects (401) missing/invalid tokens; on success, injects <code>X-User-Id</code> / <code>X-User-Roles</code> headers for downstream trust.</li>
+        <li><code>RequestRateLimiter</code> (Redis token-bucket) — 429 on exceeded quota; keyed by user id on most routes, by remote IP on <code>/users/auth/**</code> (see Part 7).</li>
+        <li>Route predicate matches path, forwards to the ClusterIP Service.</li>
+        <li>Downstream service enforces method-level <code>@PreAuthorize</code> using the forwarded role header.</li>
+        <li><code>SecurityHeadersGlobalFilter</code> adds CSP/Referrer-Policy/Permissions-Policy/HSTS to the response (see Part 7).</li>
+        <li>Response logged with status, latency, correlation id; returned to client.</li>
+      </ol>
+    </section>
+
+    <!-- ============ PART 9 ============ -->
+    <section class="part" id="part9">
+      <div class="part-label"><span class="num">PART 09</span></div>
+      <h2>Observability</h2>
+      <pre class="mermaid">
+flowchart LR
+    svc[Every Service\nActuator + Micrometer] -->|/actuator/prometheus| prom[Prometheus]
+    svc -->|OTLP traces| otel[OTel Collector] --> jaeger[Jaeger]
+    prom --> graf[Grafana Dashboards]
+    otel --> graf
+      </pre>
+      <div class="card-grid">
+        <div class="card"><h4>Metrics</h4><p>Spring Boot Actuator + Micrometer registry → Prometheus scrape at <code>/actuator/prometheus</code>. JVM (heap, GC pauses), HTTP (latency histograms, 4xx/5xx rate per route), Kafka consumer lag, HikariCP pool saturation, Resilience4j circuit-breaker state. Every <code>k8s/deployment.yaml</code> (and Helm template) carries the <code>prometheus.io/scrape</code>/<code>port</code>/<code>path</code> pod annotations Prometheus's Kubernetes service-discovery job filters on — without them the scrape config silently discovers nothing.</p></div>
+        <div class="card"><h4>Tracing</h4><p><code>spring-boot-starter-opentelemetry</code> (Boot 4.1's consolidated OTel starter — Micrometer's tracing bridge + the OTLP exporter in one dependency) on every service; spans pushed via OTLP/HTTP to the Collector, which forwards to Jaeger. Trace ID = correlation ID propagated end to end.</p></div>
+        <div class="card"><h4>Dashboards</h4><p>Grafana: per-service golden signals (rate/errors/duration/saturation) for all seven services, a platform-wide order funnel (created → confirmed → paid → shipped), Kafka consumer-lag board, Postgres connection/replication board.</p></div>
+        <div class="card"><h4>Alerting</h4><p>Prometheus Alertmanager rules: error rate &gt;2% over 5m, p99 latency &gt;1s, consumer lag &gt;10k, pod restart loop, HPA at max replicas sustained.</p></div>
+      </div>
+      <div class="note">
+        <p><strong>Where this actually runs:</strong> <code>kubernetes/observability/</code> has working manifests for the full stack (Prometheus, Grafana, OTel Collector, Jaeger, plus RBAC for Prometheus's Kubernetes service discovery) — <code>kubectl apply -f kubernetes/observability/</code> stands it up in its own <code>observability</code> namespace. For local dev, the same stack is wired into <code>docker-compose.yaml</code>. These are reference-tier, single-replica manifests; a real production install would swap Prometheus/Grafana for the <code>prometheus-community/kube-prometheus-stack</code> Helm chart rather than hand-rolled Deployments, for the Operator, Alertmanager clustering, and node-exporter/kube-state-metrics that come with it.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 10 ============ -->
+    <section class="part" id="part10">
+      <div class="part-label"><span class="num">PART 10</span></div>
+      <h2>Logging</h2>
+      <p>Structured JSON via Spring Boot's native structured logging (<code>logging.structured.format.console: logstash</code>, Boot 3.4+) — a one-line property, no external encoder dependency or hand-maintained <code>logback-spring.xml</code> per service. Correlation ID is injected through MDC by the same gateway filter that assigns it, propagated to downstream services as an HTTP header and copied into MDC there too; Boot's structured formatter includes the full MDC context automatically.</p>
+      <pre><code>{
+  "timestamp": "2026-07-22T10:14:03.221Z",
+  "level": "INFO",
+  "service": "order-service",
+  "traceId": "3f7a9c21b8e4...",
+  "correlationId": "3f7a9c21-88e4-4a11-9c02-1d7e5f0a9b31",
+  "logger": "com.ecommerce.order.service.OrderService",
+  "message": "Order confirmed",
+  "orderId": "b410...9f3e",
+  "customerId": "9c2f...e11a"
+}</code></pre>
+      <p>Filebeat ships container stdout to Logstash → Elasticsearch; Kibana dashboards are built around <code>correlationId</code> so a single request's full cross-service log trail is one query away.</p>
+      <div class="note">
+        <p><strong>Where this actually runs:</strong> <code>kubernetes/observability/</code> includes Elasticsearch (single-node StatefulSet), Logstash, Kibana, and a Filebeat DaemonSet with the RBAC it needs for Kubernetes pod-metadata enrichment. The docker-compose stack mirrors this with a Docker-autodiscover Filebeat config instead (no Kubernetes API to query locally). As with the metrics stack, a real production install typically uses the Elastic Cloud on Kubernetes (ECK) operator instead of hand-rolled Elasticsearch StatefulSets.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 11 ============ -->
+    <section class="part" id="part11">
+      <div class="part-label"><span class="num">PART 11</span></div>
+      <h2>Dockerization</h2>
+      <pre><code># order-service/Dockerfile
+FROM eclipse-temurin:25-jdk-alpine AS build
+WORKDIR /app
+COPY gradlew settings.gradle build.gradle ./
+COPY gradle ./gradle
+COPY common ./common
+COPY order-service ./order-service
+RUN ./gradlew :order-service:bootJar -x test --no-daemon
+
+FROM eclipse-temurin:25-jre-alpine
+RUN addgroup -S spring && adduser -S spring -G spring
+WORKDIR /app
+COPY --from=build /app/order-service/build/libs/*.jar app.jar
+USER spring:spring
+EXPOSE 8084
+ENTRYPOINT ["java","-XX:+UseContainerSupport","-XX:MaxRAMPercentage=75","-jar","app.jar"]</code></pre>
+      <p>Multi-stage keeps the runtime image to a JRE + jar (no build toolchain in the final layer), Alpine base minimizes size, non-root user satisfies pod security standards, and <code>-XX:MaxRAMPercentage</code> respects the container's cgroup memory limit rather than the host's.</p>
+      <p>Full <code>docker-compose.yaml</code> (Postgres ×6, Kafka in KRaft mode, all seven services) is at the repository root — see <a href="#part21">Part 21</a>.</p>
+    </section>
+
+    <!-- ============ PART 12 ============ -->
+    <section class="part" id="part12">
+      <div class="part-label"><span class="num">PART 12</span></div>
+      <h2>Kubernetes Deployment</h2>
+      <p>Every service ships <code>deployment.yaml</code>, <code>service.yaml</code>, <code>configmap.yaml</code>, <code>secret.yaml</code>, and <code>hpa.yaml</code> under <code>&lt;service&gt;/k8s/</code> (also templated in Helm — see <a href="#part15">Part 15</a>). Common probe/resource shape:</p>
+      <pre><code>containers:
+  - name: order-service
+    image: registry.company.com/ecommerce/order-service:{{ .Values.image.tag }}
+    ports: [{ containerPort: 8084 }]
+    envFrom:
+      - configMapRef: { name: order-service-config }
+      - secretRef: { name: order-service-secret }
+    resources:
+      requests: { cpu: "250m", memory: "512Mi" }
+      limits:   { cpu: "1",    memory: "1Gi" }
+    startupProbe:
+      httpGet: { path: /actuator/health, port: 8084 }
+      failureThreshold: 30
+      periodSeconds: 5
+    readinessProbe:
+      httpGet: { path: /actuator/health/readiness, port: 8084 }
+      periodSeconds: 10
+    livenessProbe:
+      httpGet: { path: /actuator/health/liveness, port: 8084 }
+      periodSeconds: 15
+      failureThreshold: 3</code></pre>
+      <p>Startup probe absorbs JVM + Flyway migration + connection pool warm-up before liveness is even evaluated, so a slow-starting pod isn't killed mid-boot. HPA targets 70% CPU and 75% memory, min 3 / max 10 replicas for <code>order-service</code> and <code>product-service</code> (highest read traffic), min 2 / max 5 for the rest.</p>
+    </section>
+
+    <!-- ============ PART 13 ============ -->
+    <section class="part" id="part13">
+      <div class="part-label"><span class="num">PART 13</span></div>
+      <h2>Ingress</h2>
+      <pre><code>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-ingress
+  namespace: ecommerce
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [api.company.com]
+      secretName: api-company-com-tls
+  rules:
+    - host: api.company.com
+      http:
+        paths:
+          - path: /users
+            pathType: Prefix
+            backend: { service: { name: gateway-service, port: { number: 80 } } }
+          - path: /products
+            pathType: Prefix
+            backend: { service: { name: gateway-service, port: { number: 80 } } }
+          - path: /orders
+            pathType: Prefix
+            backend: { service: { name: gateway-service, port: { number: 80 } } }</code></pre>
+      <p>All host paths route to the single gateway Service — the gateway, not the Ingress, owns per-service routing (see Part 8). This keeps routing logic in one testable Spring bean set instead of split across Ingress annotations and gateway config. TLS is cert-manager-issued Let's Encrypt, auto-renewed; the Ingress terminates TLS, cluster-internal traffic is plain HTTP behind the mesh boundary.</p>
+    </section>
+
+    <!-- ============ PART 14 ============ -->
+    <section class="part" id="part14">
+      <div class="part-label"><span class="num">PART 14</span></div>
+      <h2>PostgreSQL in Kubernetes</h2>
+      <pre><code>apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: postgres-orders, namespace: data }
+spec:
+  serviceName: postgres-orders
+  replicas: 1
+  selector: { matchLabels: { app: postgres-orders } }
+  template:
+    metadata: { labels: { app: postgres-orders } }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports: [{ containerPort: 5432 }]
+          envFrom: [{ secretRef: { name: postgres-orders-secret } }]
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+          resources:
+            requests: { cpu: "500m", memory: "1Gi" }
+            limits:   { cpu: "2",    memory: "4Gi" }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: gp3-encrypted
+        resources: { requests: { storage: 50Gi } }</code></pre>
+      <p><strong>Backup:</strong> nightly <code>pg_basebackup</code> + continuous WAL archiving to object storage (e.g. via <code>pgBackRest</code> sidecar), 30-day retention, weekly restore drill into a scratch namespace to verify backups are actually restorable. <strong>Recovery:</strong> point-in-time recovery from WAL archive; RPO ~5 minutes (WAL shipping interval), RTO target 30 minutes for a full restore.</p>
+      <div class="note"><p><strong>Recommendation:</strong> self-managed StatefulSet Postgres is reasonable for dev/qa. For UAT/prod, prefer a managed service — <strong>AWS RDS for PostgreSQL</strong> (or Aurora PostgreSQL for higher throughput) or <strong>Azure Database for PostgreSQL Flexible Server</strong> — to offload patching, failover, PITR, and backup verification to the provider. Self-hosting stateful databases in K8s is operationally the highest-risk piece of this stack; only take it on if there's a concrete reason (data residency, cost at extreme scale) to avoid a managed offering.</p></div>
+    </section>
+
+    <!-- ============ PART 15 ============ -->
+    <section class="part" id="part15">
+      <div class="part-label"><span class="num">PART 15</span></div>
+      <h2>Helm Charts</h2>
+      <div class="tree">helm/
+├── ecommerce-platform/         # umbrella chart
+│   ├── Chart.yaml               (dependencies: each service subchart)
+│   ├── values.yaml               shared defaults
+│   ├── values-dev.yaml
+│   ├── values-qa.yaml
+│   ├── values-uat.yaml
+│   ├── values-prod.yaml
+│   └── charts/
+│       ├── order-service/
+│       │   ├── Chart.yaml
+│       │   ├── values.yaml
+│       │   └── templates/
+│       │       ├── deployment.yaml
+│       │       ├── service.yaml
+│       │       ├── configmap.yaml
+│       │       ├── secret.yaml
+│       │       ├── hpa.yaml
+│       │       └── _helpers.tpl
+│       ├── user-service/  (same shape)
+│       ├── product-service/
+│       ├── inventory-service/
+│       ├── payment-service/
+│       ├── notification-service/
+│       └── gateway-service/</div>
+      <p>Env-specific values differ in replica counts, resource limits, log level, and external secret refs — never in template logic:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Env</th><th>Replicas (order-service)</th><th>Resources</th><th>Log level</th></tr></thead>
+        <tbody>
+          <tr><td>dev</td><td>1</td><td>request 100m/256Mi</td><td>DEBUG</td></tr>
+          <tr><td>qa</td><td>2</td><td>request 250m/512Mi</td><td>INFO</td></tr>
+          <tr><td>uat</td><td>2</td><td>request 250m/512Mi</td><td>INFO</td></tr>
+          <tr><td>prod</td><td>3 (HPA to 10)</td><td>request 250m/512Mi, limit 1/1Gi</td><td>WARN</td></tr>
+        </tbody>
+      </table></div>
+      <p>Deploy: <code>helm upgrade --install ecommerce ./helm/ecommerce-platform -f values-prod.yaml -n ecommerce</code></p>
+    </section>
+
+    <!-- ============ PART 16 ============ -->
+    <section class="part" id="part16">
+      <div class="part-label"><span class="num">PART 16</span></div>
+      <h2>CI/CD</h2>
+      <pre class="mermaid">
+flowchart LR
+    a[Build] --> b[Unit Test] --> c[SonarQube] --> d[Package] --> e[Docker Build] --> f[Docker Push] --> g[K8s Deploy]
+      </pre>
+      <p>One GitHub Actions workflow per service (path-filtered so a change to <code>order-service/</code> only rebuilds <code>order-service</code>) — <code>.github/workflows/{gateway,user,product,inventory,order,payment,notification}-service.yml</code>, all seven following the identical build → test → <code>sonar</code> → package → Docker → deploy shape. Deploy stage runs <code>helm upgrade</code> against the target namespace, gated on branch (<code>develop</code>→dev, tags→prod with manual approval environment). The <code>sonar</code> task exists because the <code>org.sonarqube</code> Gradle plugin is applied platform-wide in the root <code>build.gradle</code>'s <code>subprojects {}</code> block, not per service.</p>
+    </section>
+
+    <!-- ============ PART 17 ============ -->
+    <section class="part" id="part17">
+      <div class="part-label"><span class="num">PART 17</span></div>
+      <h2>Testing Strategy</h2>
+      <div class="card-grid">
+        <div class="card"><h4>Unit — JUnit 5 + Mockito</h4><p>Service layer in isolation, repositories/clients mocked. Fast, run on every commit.</p></div>
+        <div class="card"><h4>Integration — Testcontainers</h4><p>Real PostgreSQL + Kafka containers per test class, wired via <code>@ServiceConnection</code> (Boot auto-configures the datasource from the running container — no manual <code>@DynamicPropertySource</code> boilerplate); repository queries, Flyway migrations, and Kafka producer/consumer round-trips verified against real engines, not H2.</p></div>
+        <div class="card"><h4>API — MockMvc / WebTestClient</h4><p>Controller slice tests asserting HTTP status, JSON shape, validation error format.</p></div>
+        <div class="card"><h4>Performance — k6 / Gatling</h4><p>Order-creation path load-tested at 5x expected peak; consumer-lag and p99 latency watched under load.</p></div>
+      </div>
+      <p>Coverage gate (JaCoCo) enforced in CI at 80% line coverage on <code>service</code> and <code>mapper</code> packages (<code>filter</code>/<code>config</code> for gateway-service, which has neither); controllers and config classes excluded from the gate (thin, tested via API tests instead). All seven services carry this same test shape — unit + controller/filter + Testcontainers (or, for gateway-service, unit + WebFlux slice, since it has no database of its own). <code>order-service</code> additionally has <code>JwtResourceServerIntegrationTest</code>, which signs real HMAC JWTs with Nimbus and posts them through the actual <code>JwtDecoder</code> bean — proving the OAuth2 Resource Server wiring end to end, not just that <code>@WithMockUser</code> satisfies the authorization rules.</p>
+    </section>
+
+    <!-- ============ PART 18 ============ -->
+    <section class="part" id="part18">
+      <div class="part-label"><span class="num">PART 18</span></div>
+      <h2>Resiliency — Resilience4j</h2>
+      <pre><code>resilience4j:
+  circuitbreaker:
+    instances:
+      inventory-service:
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 5
+  retry:
+    instances:
+      inventory-service: { maxAttempts: 3, waitDuration: 200ms, retryExceptions: [java.io.IOException] }
+  bulkhead:
+    instances:
+      inventory-service: { maxConcurrentCalls: 25 }
+  ratelimiter:
+    instances:
+      payment-service: { limitForPeriod: 100, limitRefreshPeriod: 1s, timeoutDuration: 500ms }</code></pre>
+      <p>In practice, the circuit breaker/retry/bulkhead instances above wrap the Feign clients declaratively rather than via method-level <code>@CircuitBreaker</code>/<code>@Retry</code>/<code>@Bulkhead</code> annotations — the instance name matches the <code>@FeignClient</code>'s <code>name</code>, and the fallback is the client's own <code>fallbackFactory</code> (see Part 6), invoked automatically for any exception the call throws, connection failure or decoded HTTP error alike:</p>
+      <pre><code>// integration/InventoryClient.java
+@FeignClient(name = "inventory-service", configuration = FeignClientConfig.class,
+             fallbackFactory = InventoryClientFallbackFactory.class)
+public interface InventoryClient {
+    @PostMapping("/api/v1/inventory/{productId}/reserve")
+    void reserve(@PathVariable UUID productId, @RequestBody ReserveStockRequest request);
+}
+
+// integration/InventoryClientFallbackFactory.java — runs on circuit-open or any call failure
+public InventoryClient create(Throwable cause) {
+    return new InventoryClient() {
+        public void reserve(UUID productId, ReserveStockRequest request) {
+            throw new InventoryUnavailableException(productId, cause);
+        }
+    };
+}</code></pre>
+      <p>Circuit breaker protects order-service from a degraded inventory-service turning into a full outage; retry only wraps idempotent GETs and the idempotent reserve call (guarded by an idempotency key); bulkhead caps concurrent Feign calls so one slow dependency can't exhaust the order-service thread pool; rate limiter on payment-service protects the actual payment gateway's own rate limits.</p>
+      <div class="note">
+        <p><strong>Two Boot-4.1/Spring-Cloud-2025.1.2-specific traps, both silent.</strong> First: Feign only wraps calls with a circuit breaker (and only ever invokes <code>fallbackFactory</code>) when <code>spring.cloud.openfeign.circuitbreaker.enabled: true</code> is set — the older, commonly-documented <code>feign.circuitbreaker.enabled</code> key is <em>not</em> equivalent and is silently ignored, leaving every fallback factory as dead code with no error at startup. Second: <code>spring-cloud-starter-circuitbreaker-resilience4j</code> (needed to get a <code>CircuitBreakerFactory</code> bean at all — without one, the property above has nothing to activate) still transitively pulls <code>io.github.resilience4j:resilience4j-spring-boot3</code> as of Spring Cloud 2025.1.2, which double-registers autoconfiguration beans against this project's <code>resilience4j-spring-boot4</code> and fails the app at startup with a <code>BeanDefinitionOverrideException</code>. Exclude it explicitly:</p>
+        <pre><code>// order-service/build.gradle
+implementation('org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j') {
+    exclude group: 'io.github.resilience4j', module: 'resilience4j-spring-boot3'
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- ============ PART 19 ============ -->
+    <section class="part" id="part19">
+      <div class="part-label"><span class="num">PART 19</span></div>
+      <h2>Scalability</h2>
+      <div class="table-wrap"><table>
+        <tbody>
+          <tr><th>Horizontal (services)</th><td>Stateless services scale via HPA on CPU/memory (and optionally custom metrics — Kafka lag for consumers). No sticky sessions, so any replica handles any request.</td></tr>
+          <tr><th>Vertical</th><td>Used sparingly — mainly for Postgres primaries where connection/buffer-pool overhead makes horizontal scale-out costly; VPA recommender used in dev to right-size requests before prod rollout.</td></tr>
+          <tr><th>Kafka</th><td>Scale by adding brokers + increasing topic partition count (partition count sets the consumer-parallelism ceiling); consumer group instances scale independently up to partition count.</td></tr>
+          <tr><th>PostgreSQL</th><td>Read replicas for read-heavy services (product-service catalog reads); partitioning (orders, Part 2) keeps individual indexes small; connection pooling via PgBouncer in front of each database to survive pod-count bursts.</td></tr>
+          <tr><th>Kubernetes cluster</th><td>Cluster Autoscaler adds nodes when pods are unschedulable due to resource pressure; node pools separated for stateless workloads vs. Postgres/Kafka (different resource profiles).</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============ PART 20 ============ -->
+    <section class="part" id="part20">
+      <div class="part-label"><span class="num">PART 20</span></div>
+      <h2>Production Readiness Checklist</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Area</th><th>Checks</th></tr></thead>
+        <tbody>
+          <tr><td>Security</td><td>JWT secret in Vault/Secrets Manager (not ConfigMap) · TLS everywhere at ingress · dependency CVE scan in CI · non-root containers · network policies restricting pod-to-pod traffic to declared edges · CORS allow-list (not wildcard) at the gateway · CSP/Referrer-Policy/Permissions-Policy on every response · account lockout + IP-keyed rate limit on login</td></tr>
+          <tr><td>Performance</td><td>Load test at 5x peak passed · p99 latency budget defined per endpoint · DB indexes match actual query plans (<code>EXPLAIN ANALYZE</code> reviewed)</td></tr>
+          <tr><td>Reliability</td><td>Circuit breakers on every cross-service call · idempotency keys on payment/order mutation endpoints · transactional outbox (no dual-write gap between DB commit and Kafka publish) · Kafka consumer idempotency (dedup on redelivery) + retry with dead-letter topic</td></tr>
+          <tr><td>Availability</td><td>Multi-AZ node spread · PodDisruptionBudgets set · zero-downtime rolling deploys verified · readiness gates block traffic during deploy</td></tr>
+          <tr><td>Disaster recovery</td><td>Backup restore drill executed and timed · runbook for full-region failover documented · RPO/RTO agreed with stakeholders</td></tr>
+          <tr><td>DevOps</td><td>CI gate on test coverage + Sonar quality gate · immutable image tags (git SHA, not <code>latest</code>) · rollback = one <code>helm rollback</code> away</td></tr>
+          <tr><td>Monitoring</td><td>Alertmanager routes to on-call · dashboards for all seven golden-signal sets · synthetic uptime check on <code>api.company.com</code></td></tr>
+          <tr><td>Compliance</td><td>PII encrypted at rest (users_db) · payment data never persisted beyond gateway reference tokens (PCI scope minimized) · audit log for admin actions</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============ PART 21 ============ -->
+    <section class="part" id="part21">
+      <div class="part-label"><span class="num">PART 21</span></div>
+      <h2>Repository Layout</h2>
+      <div class="tree">BackendEngineerProject/                  (Gradle multi-module root)
+├── settings.gradle
+├── build.gradle                          shared plugin/dependency management, org.sonarqube applied platform-wide
+├── common/                               shared event DTOs, correlation-id constants
+├── gateway-service/                      Spring Cloud Gateway (WebFlux) — unit + WebFlux slice tests
+├── user-service/                         JWT issuance (jjwt) + its own OAuth2 Resource Server validation
+├── product-service/
+├── inventory-service/
+├── order-service/                        ← fully implemented reference
+│   ├── build.gradle
+│   └── src/main/java/com/ecommerce/order/
+│       ├── controller / service / repository / entity / dto / mapper
+│       ├── config / security / exception / event / integration
+│   │   └── src/main/resources/{application.yml, db/migration/}
+│   ├── src/test/...                      unit + controller + JwtResourceServerIntegrationTest + Testcontainers
+│   ├── Dockerfile
+│   ├── k8s/{deployment,service,configmap,secret,hpa}.yaml    deployment carries prometheus.io/* scrape annotations
+│   └── helm chart under /helm/ecommerce-platform/charts/order-service
+├── payment-service/
+├── notification-service/
+├── docker-compose.yaml                   app services + Postgres×6/Kafka/Redis + full observability stack
+├── docs/
+│   └── architecture.html                 ← this document
+├── kubernetes/
+│   ├── namespace.yaml / ingress.yaml / redis.yaml / postgres/ / kafka.yaml
+│   │                                    kafka.yaml is the 3-broker KRaft StatefulSet — Docker Compose runs a
+│   │                                    single broker instead (see docker-compose.yaml), this is the closer-
+│   │                                    to-production version
+│   └── observability/                    Prometheus, Grafana, OTel Collector, Jaeger, ELK, Filebeat — the
+│                                          actual manifests that run what Part 9/10 describe, in their own
+│                                          `observability` namespace
+├── helm/ecommerce-platform/              umbrella chart (Part 15) — every subchart's Deployment template
+│                                          also carries the prometheus.io/* scrape annotations
+├── monitoring/                           prometheus.yml (+ -docker.yml variant), alert-rules.yml,
+│                                          otel-collector-config.yaml (+ -docker variant), 7 Grafana
+│                                          dashboards (one per service), logstash/, filebeat.yaml (+ -docker),
+│                                          grafana/provisioning/ (datasource + dashboard provisioning)
+├── Tiltfile                              one-command local K8s dev loop (`tilt up`) — see
+│                                          docs/local-deployment.html Part 4
+└── .github/workflows/                    one CI/CD pipeline per service (7 total), identical shape</div>
+    </section>
+
+    <!-- ============ PART 22 ============ -->
+    <section class="part" id="part22">
+      <div class="part-label"><span class="num">PART 22</span></div>
+      <h2>Learning Roadmap</h2>
+      <p>Moved to its own document, <a href="learning-guide.html">docs/learning-guide.html</a> — a guided path through this same material (Spring Boot → data → APIs → messaging → reliability → security → containers → observability), with a junior-level takeaway and a lead-level takeaway at each stop, rather than a bare phase table. This part number is kept as a placeholder so links to <code>#part22</code> from elsewhere in this document still resolve.</p>
+    </section>
+
+    <footer>
+      Architecture reference for the six-service e-commerce platform. Runnable code for <code>order-service</code> and scaffolding for the remaining services live in this repository alongside this document.
+    </footer>
+  </main>
+</div>
+
+<!--
+  This file is meant to be readable two ways: opened directly as a static HTML file
+  (e.g. from a repo checkout) and published through a host that renders Mermaid itself.
+  This loader only matters for the first case — if a host's CSP blocks the CDN fetch
+  below (as a strict artifact-hosting CSP does), that host is expected to render the
+  `pre.mermaid` blocks on its own instead.
+-->
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({ startOnLoad: true, securityLevel: "strict", theme: isDark ? "dark" : "default" });
+</script>

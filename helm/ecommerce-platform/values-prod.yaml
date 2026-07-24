@@ -1,0 +1,23 @@
+global:
+  imageTag: "" # pinned per-release to a git SHA by the CI/CD pipeline — never "latest"
+
+order-service:
+  replicaCount: 3
+  resources: { limits: { cpu: "1", memory: 1Gi } }
+  autoscaling: { minReplicas: 3, maxReplicas: 10 }
+  logLevel: WARN
+
+product-service:
+  replicaCount: 3
+  autoscaling: { minReplicas: 3, maxReplicas: 10 }
+  logLevel: WARN
+
+gateway-service:
+  replicaCount: 3
+  autoscaling: { minReplicas: 3, maxReplicas: 10 }
+  logLevel: WARN
+
+user-service: { replicaCount: 2, logLevel: WARN }
+inventory-service: { replicaCount: 2, logLevel: WARN }
+payment-service: { replicaCount: 2, logLevel: WARN }
+notification-service: { replicaCount: 2, logLevel: WARN }

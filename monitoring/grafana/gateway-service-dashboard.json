@@ -1,0 +1,40 @@
+{
+  "title": "gateway-service — golden signals",
+  "timezone": "utc",
+  "panels": [
+    {
+      "title": "Request rate by route",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum(rate(spring_cloud_gateway_requests_seconds_count{application=\"gateway-service\"}[5m])) by (routeId)" }]
+    },
+    {
+      "title": "Error rate (%) by route",
+      "type": "timeseries",
+      "targets": [{ "expr": "100 * sum(rate(spring_cloud_gateway_requests_seconds_count{application=\"gateway-service\",outcome=\"SERVER_ERROR\"}[5m])) by (routeId) / sum(rate(spring_cloud_gateway_requests_seconds_count{application=\"gateway-service\"}[5m])) by (routeId)" }]
+    },
+    {
+      "title": "p50 / p95 / p99 latency",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(spring_cloud_gateway_requests_seconds_bucket{application=\"gateway-service\"}[5m])) by (le))" },
+        { "expr": "histogram_quantile(0.95, sum(rate(spring_cloud_gateway_requests_seconds_bucket{application=\"gateway-service\"}[5m])) by (le))" },
+        { "expr": "histogram_quantile(0.99, sum(rate(spring_cloud_gateway_requests_seconds_bucket{application=\"gateway-service\"}[5m])) by (le))" }
+      ]
+    },
+    {
+      "title": "Circuit breaker state — userServiceCB / productServiceCB / orderServiceCB / paymentServiceCB",
+      "type": "state-timeline",
+      "targets": [{ "expr": "resilience4j_circuitbreaker_state{application=\"gateway-service\"}" }]
+    },
+    {
+      "title": "Requests rejected by rate limiter (429s on order-service route)",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum(rate(spring_cloud_gateway_requests_seconds_count{application=\"gateway-service\",routeId=\"order-service\",httpStatusCode=\"429\"}[5m]))" }]
+    },
+    {
+      "title": "JVM heap used",
+      "type": "timeseries",
+      "targets": [{ "expr": "jvm_memory_used_bytes{application=\"gateway-service\",area=\"heap\"}" }]
+    }
+  ]
+}

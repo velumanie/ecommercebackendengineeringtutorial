@@ -1,0 +1,10 @@
+global:
+  imageTag: uat
+
+order-service: { replicaCount: 2, logLevel: INFO }
+user-service: { replicaCount: 2, logLevel: INFO }
+product-service: { replicaCount: 2, logLevel: INFO }
+inventory-service: { replicaCount: 2, logLevel: INFO }
+payment-service: { replicaCount: 2, logLevel: INFO }
+notification-service: { replicaCount: 2, logLevel: INFO }
+gateway-service: { replicaCount: 2, logLevel: INFO }

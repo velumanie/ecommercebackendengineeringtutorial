@@ -1,0 +1,359 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  order-service-dashboard.json: |
+    {
+      "title": "order-service — golden signals",
+      "timezone": "utc",
+      "panels": [
+        {
+          "title": "Request rate",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"order-service\"}[5m])) by (uri, method)" }]
+        },
+        {
+          "title": "Error rate (%)",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"order-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"order-service\"}[5m]))" }]
+        },
+        {
+          "title": "p50 / p95 / p99 latency",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"order-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"order-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"order-service\"}[5m])) by (le))" }
+          ]
+        },
+        {
+          "title": "JVM heap used",
+          "type": "timeseries",
+          "targets": [{ "expr": "jvm_memory_used_bytes{application=\"order-service\",area=\"heap\"}" }]
+        },
+        {
+          "title": "Circuit breaker state (inventory-service, payment-service)",
+          "type": "state-timeline",
+          "targets": [{ "expr": "resilience4j_circuitbreaker_state{application=\"order-service\"}" }]
+        },
+        {
+          "title": "HikariCP active connections",
+          "type": "timeseries",
+          "targets": [{ "expr": "hikaricp_connections_active{application=\"order-service\"}" }]
+        }
+      ]
+    }
+  user-service-dashboard.json: |
+    {
+      "title": "user-service — golden signals",
+      "timezone": "utc",
+      "panels": [
+        {
+          "title": "Request rate",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"user-service\"}[5m])) by (uri, method)" }]
+        },
+        {
+          "title": "Error rate (%)",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"user-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"user-service\"}[5m]))" }]
+        },
+        {
+          "title": "p50 / p95 / p99 latency",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"user-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"user-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"user-service\"}[5m])) by (le))" }
+          ]
+        },
+        {
+          "title": "Login rate vs. invalid-credentials rate",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "sum(rate(http_server_requests_seconds_count{application=\"user-service\",uri=\"/api/v1/auth/login\",status=\"200\"}[5m]))" },
+            { "expr": "sum(rate(http_server_requests_seconds_count{application=\"user-service\",uri=\"/api/v1/auth/login\",status=\"401\"}[5m]))" }
+          ]
+        },
+        {
+          "title": "JVM heap used",
+          "type": "timeseries",
+          "targets": [{ "expr": "jvm_memory_used_bytes{application=\"user-service\",area=\"heap\"}" }]
+        },
+        {
+          "title": "HikariCP active connections",
+          "type": "timeseries",
+          "targets": [{ "expr": "hikaricp_connections_active{application=\"user-service\"}" }]
+        }
+      ]
+    }
+  product-service-dashboard.json: |
+    {
+      "title": "product-service — golden signals",
+      "timezone": "utc",
+      "panels": [
+        {
+          "title": "Request rate",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"product-service\"}[5m])) by (uri, method)" }]
+        },
+        {
+          "title": "Error rate (%)",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"product-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"product-service\"}[5m]))" }]
+        },
+        {
+          "title": "p50 / p95 / p99 latency",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"product-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"product-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"product-service\"}[5m])) by (le))" }
+          ]
+        },
+        {
+          "title": "JVM heap used",
+          "type": "timeseries",
+          "targets": [{ "expr": "jvm_memory_used_bytes{application=\"product-service\",area=\"heap\"}" }]
+        },
+        {
+          "title": "HikariCP active connections",
+          "type": "timeseries",
+          "targets": [{ "expr": "hikaricp_connections_active{application=\"product-service\"}" }]
+        },
+        {
+          "title": "Pod replica count (read-heavy, highest HPA ceiling)",
+          "type": "timeseries",
+          "targets": [{ "expr": "kube_deployment_status_replicas{deployment=\"product-service\",namespace=\"ecommerce\"}" }]
+        }
+      ]
+    }
+  inventory-service-dashboard.json: |
+    {
+      "title": "inventory-service — golden signals",
+      "timezone": "utc",
+      "panels": [
+        {
+          "title": "Request rate",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"inventory-service\"}[5m])) by (uri, method)" }]
+        },
+        {
+          "title": "Error rate (%)",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"inventory-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"inventory-service\"}[5m]))" }]
+        },
+        {
+          "title": "p50 / p95 / p99 latency",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"inventory-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"inventory-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"inventory-service\"}[5m])) by (le))" }
+          ]
+        },
+        {
+          "title": "Kafka consumer lag (order-events, group=inventory-service)",
+          "type": "timeseries",
+          "targets": [{ "expr": "kafka_consumer_lag_records{application=\"inventory-service\",topic=\"order-events\"}" }]
+        },
+        {
+          "title": "JVM heap used",
+          "type": "timeseries",
+          "targets": [{ "expr": "jvm_memory_used_bytes{application=\"inventory-service\",area=\"heap\"}" }]
+        },
+        {
+          "title": "HikariCP active connections",
+          "type": "timeseries",
+          "targets": [{ "expr": "hikaricp_connections_active{application=\"inventory-service\"}" }]
+        }
+      ]
+    }
+  payment-service-dashboard.json: |
+    {
+      "title": "payment-service — golden signals",
+      "timezone": "utc",
+      "panels": [
+        {
+          "title": "Request rate",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"payment-service\"}[5m])) by (uri, method)" }]
+        },
+        {
+          "title": "Error rate (%)",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"payment-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"payment-service\"}[5m]))" }]
+        },
+        {
+          "title": "p50 / p95 / p99 latency",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"payment-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"payment-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"payment-service\"}[5m])) by (le))" }
+          ]
+        },
+        {
+          "title": "Authorization outcome (approved vs. declined)",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "sum(rate(http_server_requests_seconds_count{application=\"payment-service\",uri=\"/api/v1/payments/authorize\",status=\"200\"}[5m]))" }
+          ]
+        },
+        {
+          "title": "Rate limiter — calls permitted vs. rejected",
+          "type": "timeseries",
+          "targets": [{ "expr": "resilience4j_ratelimiter_calls{application=\"payment-service\"}" }]
+        },
+        {
+          "title": "JVM heap used",
+          "type": "timeseries",
+          "targets": [{ "expr": "jvm_memory_used_bytes{application=\"payment-service\",area=\"heap\"}" }]
+        },
+        {
+          "title": "HikariCP active connections",
+          "type": "timeseries",
+          "targets": [{ "expr": "hikaricp_connections_active{application=\"payment-service\"}" }]
+        }
+      ]
+    }
+  notification-service-dashboard.json: |
+    {
+      "title": "notification-service — golden signals",
+      "timezone": "utc",
+      "panels": [
+        {
+          "title": "Request rate (admin log-query API)",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"notification-service\"}[5m])) by (uri, method)" }]
+        },
+        {
+          "title": "Error rate (%)",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"notification-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"notification-service\"}[5m]))" }]
+        },
+        {
+          "title": "Kafka consumer lag (payment-events, group=notification-service)",
+          "type": "timeseries",
+          "targets": [{ "expr": "kafka_consumer_lag_records{application=\"notification-service\",topic=\"payment-events\"}" }]
+        },
+        {
+          "title": "Email send outcome (sent vs. failed)",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "sum(rate(email_send_total{application=\"notification-service\",status=\"SENT\"}[5m]))" },
+            { "expr": "sum(rate(email_send_total{application=\"notification-service\",status=\"FAILED\"}[5m]))" }
+          ]
+        },
+        {
+          "title": "JVM heap used",
+          "type": "timeseries",
+          "targets": [{ "expr": "jvm_memory_used_bytes{application=\"notification-service\",area=\"heap\"}" }]
+        },
+        {
+          "title": "HikariCP active connections",
+          "type": "timeseries",
+          "targets": [{ "expr": "hikaricp_connections_active{application=\"notification-service\"}" }]
+        }
+      ]
+    }
+  gateway-service-dashboard.json: |
+    {
+      "title": "gateway-service — golden signals",
+      "timezone": "utc",
+      "panels": [
+        {
+          "title": "Request rate by route",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(spring_cloud_gateway_requests_seconds_count{application=\"gateway-service\"}[5m])) by (routeId)" }]
+        },
+        {
+          "title": "Error rate (%) by route",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * sum(rate(spring_cloud_gateway_requests_seconds_count{application=\"gateway-service\",outcome=\"SERVER_ERROR\"}[5m])) by (routeId) / sum(rate(spring_cloud_gateway_requests_seconds_count{application=\"gateway-service\"}[5m])) by (routeId)" }]
+        },
+        {
+          "title": "p50 / p95 / p99 latency",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "histogram_quantile(0.50, sum(rate(spring_cloud_gateway_requests_seconds_bucket{application=\"gateway-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.95, sum(rate(spring_cloud_gateway_requests_seconds_bucket{application=\"gateway-service\"}[5m])) by (le))" },
+            { "expr": "histogram_quantile(0.99, sum(rate(spring_cloud_gateway_requests_seconds_bucket{application=\"gateway-service\"}[5m])) by (le))" }
+          ]
+        },
+        {
+          "title": "Circuit breaker state — userServiceCB / productServiceCB / orderServiceCB / paymentServiceCB",
+          "type": "state-timeline",
+          "targets": [{ "expr": "resilience4j_circuitbreaker_state{application=\"gateway-service\"}" }]
+        },
+        {
+          "title": "Requests rejected by rate limiter (429s on order-service route)",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(spring_cloud_gateway_requests_seconds_count{application=\"gateway-service\",routeId=\"order-service\",httpStatusCode=\"429\"}[5m]))" }]
+        },
+        {
+          "title": "JVM heap used",
+          "type": "timeseries",
+          "targets": [{ "expr": "jvm_memory_used_bytes{application=\"gateway-service\",area=\"heap\"}" }]
+        }
+      ]
+    }
+  loadtest-dashboard.json: |
+    {
+      "title": "Load Testing (k6)",
+      "timezone": "utc",
+      "panels": [
+        {
+          "title": "Virtual users",
+          "type": "timeseries",
+          "targets": [{ "expr": "k6_vus", "legendFormat": "{{testid}}" }]
+        },
+        {
+          "title": "Request rate",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(k6_http_reqs_total[1m])) by (testid)", "legendFormat": "{{testid}}" }]
+        },
+        {
+          "title": "Unexpected errors (%) — 5xx / connection failures only, the real \"it broke\" signal",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * k6_unexpected_errors_rate", "legendFormat": "{{testid}}" }]
+        },
+        {
+          "title": "HTTP req failed (%) — includes expected 4xx (rate limiting, validation)",
+          "type": "timeseries",
+          "targets": [{ "expr": "100 * k6_http_req_failed_rate", "legendFormat": "{{testid}}" }]
+        },
+        {
+          "title": "Flow p95 latency by workload",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "k6_flow_browse_duration_p95", "legendFormat": "browse ({{testid}})" },
+            { "expr": "k6_flow_order_journey_duration_p95", "legendFormat": "order_journey ({{testid}})" },
+            { "expr": "k6_flow_repeat_login_duration_p95", "legendFormat": "repeat_login ({{testid}})" },
+            { "expr": "k6_flow_admin_ops_duration_p95", "legendFormat": "admin_ops ({{testid}})" }
+          ]
+        },
+        {
+          "title": "HTTP request duration p95 / p99 (overall)",
+          "type": "timeseries",
+          "targets": [
+            { "expr": "k6_http_req_duration_p95", "legendFormat": "p95 ({{testid}})" },
+            { "expr": "k6_http_req_duration_p99", "legendFormat": "p99 ({{testid}})" }
+          ]
+        },
+        {
+          "title": "Orders created / sec",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(k6_orders_created_total[1m])) by (testid)", "legendFormat": "{{testid}}" }]
+        },
+        {
+          "title": "Iterations / sec (overall throughput)",
+          "type": "timeseries",
+          "targets": [{ "expr": "sum(rate(k6_iterations_total[1m])) by (testid)", "legendFormat": "{{testid}}" }]
+        }
+      ]
+    }

@@ -1,0 +1,40 @@
+{
+  "title": "order-service — golden signals",
+  "timezone": "utc",
+  "panels": [
+    {
+      "title": "Request rate",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"order-service\"}[5m])) by (uri, method)" }]
+    },
+    {
+      "title": "Error rate (%)",
+      "type": "timeseries",
+      "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"order-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"order-service\"}[5m]))" }]
+    },
+    {
+      "title": "p50 / p95 / p99 latency",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"order-service\"}[5m])) by (le))" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"order-service\"}[5m])) by (le))" },
+        { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"order-service\"}[5m])) by (le))" }
+      ]
+    },
+    {
+      "title": "JVM heap used",
+      "type": "timeseries",
+      "targets": [{ "expr": "jvm_memory_used_bytes{application=\"order-service\",area=\"heap\"}" }]
+    },
+    {
+      "title": "Circuit breaker state (inventory-service, payment-service)",
+      "type": "state-timeline",
+      "targets": [{ "expr": "resilience4j_circuitbreaker_state{application=\"order-service\"}" }]
+    },
+    {
+      "title": "HikariCP active connections",
+      "type": "timeseries",
+      "targets": [{ "expr": "hikaricp_connections_active{application=\"order-service\"}" }]
+    }
+  ]
+}

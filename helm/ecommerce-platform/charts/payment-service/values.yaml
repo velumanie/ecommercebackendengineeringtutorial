@@ -1,0 +1,8 @@
+replicaCount: 2
+image: { repository: payment-service, tag: latest }
+containerPort: 8085
+resources:
+  requests: { cpu: 250m, memory: 512Mi }
+  limits: { cpu: "1", memory: 1Gi }
+autoscaling: { minReplicas: 2, maxReplicas: 6, targetCPUUtilization: 70 }
+logLevel: INFO

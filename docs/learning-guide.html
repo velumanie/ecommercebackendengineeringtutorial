@@ -1,0 +1,302 @@
+<meta charset="UTF-8">
+<title>E-Commerce Platform — Learning Guide</title>
+<style>
+  :root{
+    --bg:#f6f5f2;
+    --bg-raised:#ffffff;
+    --ink:#1c2024;
+    --ink-dim:#5b6470;
+    --line:#dcd8d0;
+    --line-strong:#c3bdb2;
+    --accent:#3d5a99;
+    --accent-ink:#ffffff;
+    --accent-soft:#e7ecf6;
+    --code-bg:#f0eee9;
+    --ok:#3e7a4c;
+    --warn:#a86a1f;
+    --crit:#a8402f;
+    --shadow: 0 1px 2px rgba(28,32,36,.06), 0 6px 20px rgba(28,32,36,.05);
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161a;
+    --bg-raised:#1b1e23;
+    --ink:#e8e6e1;
+    --ink-dim:#9aa0a8;
+    --line:#2c3036;
+    --line-strong:#3c4149;
+    --accent:#7f9cd6;
+    --accent-ink:#0e1218;
+    --accent-soft:#232a38;
+    --code-bg:#101216;
+    --ok:#6fbf7f;
+    --warn:#d99a4e;
+    --crit:#e2695a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161a; --bg-raised:#1b1e23; --ink:#e8e6e1; --ink-dim:#9aa0a8;
+      --line:#2c3036; --line-strong:#3c4149; --accent:#7f9cd6; --accent-ink:#0e1218;
+      --accent-soft:#232a38; --code-bg:#101216; --ok:#6fbf7f; --warn:#d99a4e; --crit:#e2695a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family: Charter, 'Iowan Old Style', 'Georgia', 'Cambria', serif;
+    font-size:16.5px; line-height:1.6;
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  .eyebrow{
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    font-size:11.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--accent);
+    font-weight:600;
+  }
+  h1,h2,h3,h4{
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight:700; letter-spacing:-.01em; color:var(--ink); text-wrap:balance;
+  }
+  h1{ font-size:clamp(28px,4vw,42px); line-height:1.08; margin:.3em 0 .2em; letter-spacing:-.02em;}
+  h2{ font-size:24px; margin:0 0 4px; padding-top:2px; }
+  h3{ font-size:16px; margin:1.4em 0 .4em; }
+  p{ margin:.6em 0; max-width:70ch; color:var(--ink); }
+  a{ color:var(--accent); }
+  code{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:.88em; background:var(--code-bg); padding:.1em .35em; border-radius:4px; }
+  pre{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:13px; line-height:1.55; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; overflow-x:auto; }
+  pre code{ background:none; padding:0; }
+
+  .shell{ display:grid; grid-template-columns:230px minmax(0,1fr); gap:0; max-width:1200px; margin:0 auto; }
+  @media (max-width:980px){ .shell{ grid-template-columns:1fr; } .toc{ position:static !important; height:auto !important; border-right:none !important; border-bottom:1px solid var(--line); } }
+
+  .toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    border-right:1px solid var(--line); padding:28px 18px 40px 28px;
+  }
+  .toc .brand{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-weight:800; font-size:15px; letter-spacing:-.01em; margin-bottom:2px;}
+  .toc .brand small{ display:block; font-weight:500; color:var(--ink-dim); font-size:11.5px; margin-top:2px;}
+  .toc nav{ margin-top:22px; }
+  .toc a{ display:block; text-decoration:none; color:var(--ink-dim); font-size:13px; padding:5px 0; border-left:2px solid transparent; padding-left:10px; margin-left:-11px; }
+  .toc a:hover{ color:var(--ink); }
+  .toc .part-num{ font-family:ui-monospace,monospace; color:var(--accent); margin-right:6px; font-size:11.5px;}
+
+  main{ padding:44px 48px 120px; min-width:0; }
+  @media (max-width:640px){ main{ padding:28px 20px 90px; } }
+
+  header.hero{ max-width:820px; margin-bottom:22px; }
+  .stack-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+  .chip{ font-family:ui-monospace,monospace; font-size:11.5px; border:1px solid var(--line-strong); border-radius:20px; padding:4px 10px; color:var(--ink-dim); }
+
+  section.part{ max-width:780px; padding-top:44px; margin-top:44px; border-top:1px solid var(--line); scroll-margin-top:20px; }
+  section.part:first-of-type{ border-top:none; margin-top:30px; padding-top:0; }
+  .part-label{ display:flex; align-items:baseline; gap:10px; margin-bottom:2px;}
+  .part-label .num{ font-family:ui-monospace,monospace; font-size:13px; color:var(--accent); font-weight:700;}
+
+  .level{ border-radius:8px; padding:10px 14px; margin:.8em 0; font-size:14.5px; }
+  .level p{ margin:0; max-width:none; }
+  .level .tag{ font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; display:block; margin-bottom:3px; }
+  .level.junior{ background:var(--accent-soft); border-left:3px solid var(--accent); }
+  .level.junior .tag{ color:var(--accent); }
+  .level.lead{ background:var(--bg-raised); border:1px solid var(--line); box-shadow:var(--shadow); }
+  .level.lead .tag{ color:var(--ink-dim); }
+
+  table{ border-collapse:collapse; width:100%; margin:1em 0; font-size:14px; }
+  th,td{ text-align:left; padding:7px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700; border-bottom:1px solid var(--line-strong); }
+  .table-wrap{ overflow-x:auto; border-radius:8px; }
+
+  ul,ol{ padding-left:1.3em; }
+  li{ margin:.3em 0; }
+
+  footer{ max-width:780px; margin-top:70px; padding-top:22px; border-top:1px solid var(--line); color:var(--ink-dim); font-size:13px; }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="brand">E-Commerce Platform<small>Learning Guide</small></div>
+    <nav>
+      <a href="#start"><span class="part-num">00</span>Start Here</a>
+      <a href="#shape"><span class="part-num">01</span>How This Repo Teaches Itself</a>
+      <a href="#spring"><span class="part-num">02</span>Spring Boot Layers</a>
+      <a href="#data"><span class="part-num">03</span>Data — Postgres + Flyway</a>
+      <a href="#api"><span class="part-num">04</span>REST API Design</a>
+      <a href="#comms"><span class="part-num">05</span>Talking Between Services</a>
+      <a href="#reliability"><span class="part-num">06</span>Reliability Patterns</a>
+      <a href="#security"><span class="part-num">07</span>Security</a>
+      <a href="#containers"><span class="part-num">08</span>Containers &amp; Orchestration</a>
+      <a href="#observability"><span class="part-num">09</span>Observability</a>
+      <a href="#next"><span class="part-num">10</span>Where To Go Next</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Onboarding</div>
+      <h1>Learn the Stack</h1>
+      <p>The same technologies as <code>docs/architecture.html</code>, but as a path instead of a reference — read this top to bottom once, skipping anything you already know. Every section has two boxes: <strong>Junior</strong> is what you need to get productive; <strong>Lead</strong> is the tradeoff worth understanding once you're the one making the call. Every pointer below is a real file in this repo, not a hypothetical.</p>
+      <div class="stack-chips">
+        <span class="chip">Java 25</span><span class="chip">Spring Boot 4.1</span><span class="chip">PostgreSQL</span><span class="chip">Kafka</span>
+        <span class="chip">Docker</span><span class="chip">Kubernetes</span><span class="chip">Helm</span><span class="chip">Prometheus</span><span class="chip">Kibana</span>
+      </div>
+    </header>
+
+    <section class="part" id="start">
+      <div class="part-label"><span class="num">00</span></div>
+      <h2>Start Here</h2>
+      <p>Don't read code first. Run the thing, poke at it, then come back — everything below will make more sense once you've seen it work.</p>
+      <pre><code>docker compose up --build
+curl -X POST localhost:8080/users/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}'</code></pre>
+      <p>That's the whole platform — 7 services, 6 databases, Kafka, and the full observability stack — on your laptop. Full walkthrough (including placing an order end to end): <a href="local-deployment.html">docs/local-deployment.html</a>.</p>
+    </section>
+
+    <section class="part" id="shape">
+      <div class="part-label"><span class="num">01</span></div>
+      <h2>How This Repo Teaches Itself</h2>
+      <p><code>order-service</code> is the complete reference implementation: every layer, full tests, Dockerfile, Kubernetes manifests, Helm chart. The other five services (<code>user</code>, <code>product</code>, <code>inventory</code>, <code>payment</code>, <code>notification</code>) copy its shape exactly. Read <code>order-service</code> once, carefully — you can skim the rest, because they're the same pattern applied to a different domain.</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>Open <code>order-service/src/main/java/com/ecommerce/order/</code> and just look at the folder names. That list <em>is</em> the architecture — nothing hidden, nothing to memorize separately.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>The full repo tree with every service, chart, and pipeline is <a href="architecture.html#part21">architecture.html Part 21</a> — useful once you're navigating six services at once, not before.</p>
+      </div>
+    </section>
+
+    <section class="part" id="spring">
+      <div class="part-label"><span class="num">02</span></div>
+      <h2>Spring Boot Layers</h2>
+      <p>Every service is the same stack, top to bottom: <code>controller</code> (HTTP in/out) → <code>service</code> (business logic) → <code>repository</code> (Spring Data JPA) → <code>entity</code> (the table). <code>dto</code>/<code>mapper</code> keep the wire format separate from the persisted shape; <code>config</code> is where beans get wired; <code>exception</code> is the error contract; <code>event</code>/<code>integration</code> is how a service talks to the others (Part 5).</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>Trace one real request: <code>OrderController.create()</code> → <code>OrderServiceImpl.createOrder()</code> → <code>OrderRepository</code> → the <code>Order</code> entity. Four files, one request, that's the whole pattern.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>Why this shape instead of a thinner "fat controller" or a CQRS split: <a href="architecture.html#part4">architecture.html Part 4</a>.</p>
+      </div>
+    </section>
+
+    <section class="part" id="data">
+      <div class="part-label"><span class="num">03</span></div>
+      <h2>Data — PostgreSQL + Flyway</h2>
+      <p>Database-per-service — no service reads another's tables directly. Schema changes are files, not ORM auto-DDL: every table this platform has ever had is one <code>CREATE TABLE</code> away in a Flyway migration, checked into git.</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>Open <code>order-service/src/main/resources/db/migration/V1__init_orders.sql</code>. That file <em>is</em> the schema — no separate diagram to keep in sync, no magic. Compare it against <code>Order.java</code>'s <code>@Column</code> annotations to see how JPA maps onto it.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>Partitioning, indexing choices, and why cross-service references are plain UUIDs with no foreign key: <a href="architecture.html#part2">architecture.html Part 2</a>.</p>
+      </div>
+    </section>
+
+    <section class="part" id="api">
+      <div class="part-label"><span class="num">04</span></div>
+      <h2>REST API Design</h2>
+      <p>Controllers never accept or return entities directly — always a request/response DTO, validated with Bean Validation (<code>@NotNull</code>, <code>@Min</code>, etc.). Every error is RFC 9457 <code>application/problem+json</code>, produced by one <code>@RestControllerAdvice</code> per service, not scattered try/catch blocks.</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>Look at <code>OrderRequest</code>/<code>OrderResponse</code> next to <code>Order</code> — notice what's missing from the DTOs (internal fields like <code>version</code>) and why. Then check <code>GlobalExceptionHandler</code> to see every domain exception mapped to one status + problem type.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>Full conventions (versioning, pagination, filtering) and the OpenAPI situation: <a href="architecture.html#part3">architecture.html Part 3</a>.</p>
+      </div>
+    </section>
+
+    <section class="part" id="comms">
+      <div class="part-label"><span class="num">05</span></div>
+      <h2>Talking Between Services</h2>
+      <p>Two shapes, chosen by whether the caller needs to wait for an answer. <strong>Synchronous</strong> (OpenFeign): order-service calls inventory-service to check stock and needs the result before it can respond — wrapped in a circuit breaker with a fallback. <strong>Asynchronous</strong> (Kafka): payment-service finishes a payment and notification-service needs to know eventually, not right now — published as an event, not a blocking call.</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>Compare <code>InventoryClient</code> (a Feign interface — looks like a normal method call) against <code>OrderEventProducer</code> (writes a row, doesn't call anything directly). Same underlying need — "tell another service something" — two different shapes because the failure semantics differ: a failed Feign call fails the request now; a failed Kafka publish should never fail the request that triggered it.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>Why events are written to an outbox table instead of published directly, how the correlation ID survives the async gap, and the dead-letter policy: <a href="architecture.html#part6">architecture.html Part 6</a>.</p>
+      </div>
+    </section>
+
+    <section class="part" id="reliability">
+      <div class="part-label"><span class="num">06</span></div>
+      <h2>Reliability Patterns</h2>
+      <p>Idempotency keys, the transactional outbox, circuit breakers, consumer deduplication — every one of these exists in this codebase because of a real bug this platform actually had at some point, not as a textbook exercise. That's on purpose: the fix is more useful to read than the pattern's name.</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>What "idempotent" means, concretely: send the exact same <code>POST /orders</code> request twice with the same <code>Idempotency-Key</code> header. You get the same order back both times — <code>201</code> then <code>200</code> — never two orders and never two charges.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>The full resilience config (circuit breaker/retry/bulkhead/rate limiter) and the production-readiness checklist it feeds into: <a href="architecture.html#part18">Part 18</a>, <a href="architecture.html#part20">Part 20</a>.</p>
+      </div>
+    </section>
+
+    <section class="part" id="security">
+      <div class="part-label"><span class="num">07</span></div>
+      <h2>Security</h2>
+      <p>user-service issues a JWT once at login; every other service validates it independently via Spring Security's OAuth2 Resource Server — nobody trusts the gateway blindly, so calling a service directly is still safe. Roles map to Spring's <code>hasRole()</code>/<code>hasAnyRole()</code>. On top of that: rate limiting at the gateway and account lockout in user-service, both defending against brute-force login attempts specifically.</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>Hit an endpoint with no token at all, then again with a valid token but the wrong role. You'll get <code>401</code> and <code>403</code> respectively — they're not interchangeable, and knowing which one applies is the whole point of the exercise.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>JWT flow, refresh token revocation, RBAC model, CORS/security-header posture: <a href="architecture.html#part7">architecture.html Part 7</a>.</p>
+      </div>
+    </section>
+
+    <section class="part" id="containers">
+      <div class="part-label"><span class="num">08</span></div>
+      <h2>Containers &amp; Orchestration</h2>
+      <p>Every service has its own multi-stage <code>Dockerfile</code>. Kubernetes manifests and one umbrella Helm chart (per-environment <code>values-*.yaml</code>) turn that into something that self-heals, scales, and rolls out without downtime — none of which Docker Compose does on its own.</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>Run both paths once — Compose, then <code>tilt up</code> for local Kubernetes — and notice what's identical (the app) versus what's different (how it's supervised). <a href="local-deployment.html">docs/local-deployment.html</a> is the exact walkthrough.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>Service discovery, Ingress, StatefulSets for Postgres, Helm chart structure: <a href="architecture.html#part11">architecture.html Parts 11–15</a>.</p>
+      </div>
+    </section>
+
+    <section class="part" id="observability">
+      <div class="part-label"><span class="num">09</span></div>
+      <h2>Observability</h2>
+      <p>Three pillars, one thread tying them together: metrics (Prometheus/Grafana), traces (Jaeger via OpenTelemetry), and logs (the ELK stack) are all correlated by a single <code>correlationId</code> that's generated once at the gateway and threaded through every HTTP call <em>and</em> every Kafka message from there on.</p>
+      <div class="level junior">
+        <span class="tag">Junior</span>
+        <p>Place an order, grab the <code>X-Correlation-Id</code> response header, and search for it in Kibana. Watch one request's footprint across every service it touched.</p>
+      </div>
+      <div class="level lead">
+        <span class="tag">Lead</span>
+        <p>How each pillar is wired and what actually breaks in practice: <a href="architecture.html#part9">architecture.html Parts 9–10</a> for the design, <a href="local-deployment.html#obs-debug">local-deployment.html Part 9</a> for real failure modes and how to debug them.</p>
+      </div>
+    </section>
+
+    <section class="part" id="next">
+      <div class="part-label"><span class="num">10</span></div>
+      <h2>Where To Go Next</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>You want to&hellip;</th><th>Read</th></tr></thead>
+        <tbody>
+          <tr><td>Understand <em>why</em> a specific design decision was made</td><td><a href="architecture.html">docs/architecture.html</a> — the full 22-part reference</td></tr>
+          <tr><td>Actually run it, locally or in Kubernetes</td><td><a href="local-deployment.html">docs/local-deployment.html</a></td></tr>
+          <tr><td>See it work end to end without writing any code yourself</td><td><code>postman/</code> — import and run the collection</td></tr>
+          <tr><td>Load-test it and see where it degrades</td><td><code>loadtest/</code> — <code>peak-load.js</code> (gradual ramp), <code>spike-load.js</code> (sudden burst), <code>soak-load.js</code> (long sustained run); all three share one traffic mix in <code>loadtest/lib/flows.js</code>. Start with <code>k6 run --env PROFILE=smoke loadtest/peak-load.js</code></td></tr>
+          <tr><td>See real captured numbers without running anything yourself</td><td><a href="performance-baseline.html">docs/performance-baseline.html</a> — a dated snapshot comparing Docker Compose against Kubernetes on the same hardware</td></tr>
+          <tr><td>Build it yourself from nothing, not just read the finished version</td><td><a href="tutorial.html">docs/tutorial.html</a> — same technologies as this page, but as a phased, from-scratch build with real code and config at every step</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>
+      Learning path for the six-service e-commerce platform. Pairs with <code>docs/architecture.html</code> (design reference) and <code>docs/local-deployment.html</code> (operations reference) — this document is the on-ramp to both.
+    </footer>
+  </main>
+</div>

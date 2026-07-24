@@ -1,0 +1,14 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'ecommerce-platform'
+
+include 'common'
+include 'gateway-service'
+include 'user-service'
+include 'product-service'
+include 'inventory-service'
+include 'order-service'
+include 'payment-service'
+include 'notification-service'

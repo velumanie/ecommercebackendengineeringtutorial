@@ -1,0 +1,15 @@
+# docker-compose variant of filebeat.yaml — no Kubernetes API for pod metadata, so this
+# uses Filebeat's Docker autodiscover against the local Docker socket instead.
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      templates:
+        - condition:
+            contains: { docker.container.image: "ecommerce" }
+          config:
+            - type: container
+              paths: ["/var/lib/docker/containers/${data.docker.container.id}/*.log"]
+
+output.logstash:
+  hosts: ["logstash:5044"]

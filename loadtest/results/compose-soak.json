@@ -1,0 +1,353 @@
+{
+    "metrics": {
+        "http_req_blocked": {
+            "p(90)": 0.007,
+            "p(95)": 0.008,
+            "p(99)": 0.015,
+            "max": 3.331,
+            "avg": 0.005177623878267021,
+            "min": 0,
+            "med": 0.004
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 80.94784712540002,
+            "min": 0.901,
+            "med": 3.3775,
+            "p(90)": 326.678,
+            "p(95)": 347.40725,
+            "p(99)": 466.47224999999963,
+            "max": 1243.343
+        },
+        "http_req_sending": {
+            "p(90)": 0.026,
+            "p(95)": 0.031,
+            "p(99)": 0.06,
+            "max": 1.975,
+            "avg": 0.017003771621796147,
+            "min": 0.002,
+            "med": 0.014
+        },
+        "iteration_duration": {
+            "p(99)": 1282.6357223299992,
+            "max": 2527.768209,
+            "avg": 579.4502754256025,
+            "min": 201.634916,
+            "med": 561.5113954999999,
+            "p(90)": 923.1911163,
+            "p(95)": 1004.3496108999999
+        },
+        "flow_admin_ops_duration": {
+            "p(90)": 32,
+            "p(95)": 41,
+            "p(99)": 65,
+            "max": 128,
+            "avg": 19.64232589587559,
+            "min": 7,
+            "med": 16
+        },
+        "http_req_waiting": {
+            "max": 1243.292,
+            "avg": 64.43608274808147,
+            "min": 0.428,
+            "med": 2.709,
+            "p(90)": 321.6445,
+            "p(95)": 339.14374999999995,
+            "p(99)": 438.13045
+        },
+        "http_req_failed": {
+            "passes": 6370,
+            "fails": 24386,
+            "value": 0.20711405904538951
+        },
+        "vus_max": {
+            "value": 30,
+            "min": 30,
+            "max": 30
+        },
+        "http_reqs": {
+            "count": 30756,
+            "rate": 84.51210188925847
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0
+        },
+        "data_received": {
+            "count": 75049204,
+            "rate": 206222.06968252518
+        },
+        "flow_order_journey_duration": {
+            "max": 1915,
+            "avg": 728.0155210643015,
+            "min": 640,
+            "med": 682,
+            "p(90)": 785,
+            "p(95)": 986.9999999999991,
+            "p(99)": 1593.4999999999995,
+            "thresholds": {
+                "p(95)<3000": false
+            }
+        },
+        "http_req_connecting": {
+            "max": 0.661,
+            "avg": 0.00034321758356093107,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0
+        },
+        "http_req_receiving": {
+            "avg": 0.12481252438548547,
+            "min": 0.007,
+            "med": 0.05,
+            "p(90)": 0.16,
+            "p(95)": 0.338,
+            "p(99)": 1.3771999999999955,
+            "max": 32.107
+        },
+        "data_sent": {
+            "rate": 21484.99540196846,
+            "count": 7818910
+        },
+        "unexpected_errors": {
+            "passes": 0,
+            "fails": 30743,
+            "thresholds": {
+                "rate<0.02": false
+            },
+            "value": 0
+        },
+        "flow_repeat_login_duration": {
+            "min": 313,
+            "med": 331,
+            "p(90)": 393,
+            "p(95)": 422,
+            "p(99)": 663,
+            "max": 877,
+            "avg": 350.455938697318
+        },
+        "iterations": {
+            "count": 15552,
+            "rate": 42.734172473070224
+        },
+        "http_req_duration": {
+            "p(99)": 438.28835,
+            "max": 1243.343,
+            "avg": 64.5778990440892,
+            "min": 0.45,
+            "med": 2.791,
+            "p(90)": 321.793,
+            "p(95)": 339.34700000000004
+        },
+        "vus": {
+            "max": 30,
+            "value": 1,
+            "min": 0
+        },
+        "checks": {
+            "passes": 24376,
+            "fails": 6370,
+            "value": 0.79281857802641
+        },
+        "orders_created": {
+            "count": 439,
+            "rate": 1.2062951206068562
+        },
+        "flow_browse_duration": {
+            "med": 5,
+            "p(90)": 14,
+            "p(95)": 20,
+            "p(99)": 35,
+            "max": 109,
+            "avg": 7.221762101956305,
+            "min": 2,
+            "thresholds": {
+                "p(95)<800": false
+            }
+        }
+    },
+    "setup_data": {
+        "adminToken": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjNThiOTExNi01OTI3LTQwNzQtOTI3Ny04NzQ2MTQ5Yjg1MzAiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzg0ODMzOTE1LCJleHAiOjE3ODQ4MzQ4MTV9.58bOrBJrNoDJKQITLQejAbrV1J_htFG5m6ofqviqAjhw8M_VDoOLLMV7uPY-ZdATc4-evy2xljShm0h6Vvy3vA",
+        "productId": "1bfc0735-e241-41d6-a169-1f48deaa7017",
+        "repeatCustomers": [
+            {
+                "email": "k6-repeat-1784833915957-0@example.com",
+                "password": "Customer@12345",
+                "customerId": "acd7322c-b8b3-4e48-be88-1513831d7a55"
+            },
+            {
+                "customerId": "9b4312f0-4b20-47c0-be0c-667c9c666cb9",
+                "email": "k6-repeat-1784833916257-1@example.com",
+                "password": "Customer@12345"
+            },
+            {
+                "password": "Customer@12345",
+                "customerId": "9008916b-f425-4e54-b0fb-206d6defe0c9",
+                "email": "k6-repeat-1784833916558-2@example.com"
+            },
+            {
+                "customerId": "f04820c5-75a1-44cd-a9d3-14a0620b3fa0",
+                "email": "k6-repeat-1784833916862-3@example.com",
+                "password": "Customer@12345"
+            },
+            {
+                "customerId": "fd166723-86b1-4c58-acd8-cff73b96bbb4",
+                "email": "k6-repeat-1784833917165-4@example.com",
+                "password": "Customer@12345"
+            },
+            {
+                "customerId": "196defcc-e8a0-4e7e-9dad-54d1afc943b3",
+                "email": "k6-repeat-1784833917467-5@example.com",
+                "password": "Customer@12345"
+            },
+            {
+                "customerId": "65f689d4-f5fa-408a-b0c5-635ffc44893f",
+                "email": "k6-repeat-1784833917770-6@example.com",
+                "password": "Customer@12345"
+            },
+            {
+                "customerId": "21ef25e4-898a-4d64-874e-5c2f104cbed4",
+                "email": "k6-repeat-1784833918074-7@example.com",
+                "password": "Customer@12345"
+            },
+            {
+                "customerId": "469f6ba3-640c-40e7-9636-6a68e6bd6525",
+                "email": "k6-repeat-1784833918376-8@example.com",
+                "password": "Customer@12345"
+            },
+            {
+                "customerId": "46171f18-f3af-4596-8a54-eb1c294c5dc2",
+                "email": "k6-repeat-1784833918684-9@example.com",
+                "password": "Customer@12345"
+            }
+        ]
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "setup: admin login 200": {
+                            "name": "setup: admin login 200",
+                            "path": "::setup::setup: admin login 200",
+                            "id": "61980fe6d4c485aff7384d9c1c807ba6",
+                            "passes": 1,
+                            "fails": 0
+                        },
+                        "setup: product created 201": {
+                            "name": "setup: product created 201",
+                            "path": "::setup::setup: product created 201",
+                            "id": "151a9c497764e6566af5e31ee5f34a3f",
+                            "passes": 1,
+                            "fails": 0
+                        },
+                        "setup: stock set 200": {
+                            "fails": 0,
+                            "name": "setup: stock set 200",
+                            "path": "::setup::setup: stock set 200",
+                            "id": "01b8636c5d642adab0c9dcfe8c6d5e04",
+                            "passes": 1
+                        }
+                    },
+                "name": "setup",
+                "path": "::setup"
+            }
+        },
+        "checks": {
+            "browse: list 200": {
+                "name": "browse: list 200",
+                "path": "::browse: list 200",
+                "id": "dd8cd90545941ef1e1922a858d568296",
+                "passes": 7003,
+                "fails": 0
+            },
+            "browse: get by id 200": {
+                "name": "browse: get by id 200",
+                "path": "::browse: get by id 200",
+                "id": "c4ebcbf57b0ac78a48f20c1de592b978",
+                "passes": 7003,
+                "fails": 0
+            },
+            "order_journey: signup 201": {
+                "id": "3edbefff949e0b629a26186049eb566b",
+                "passes": 4680,
+                "fails": 0,
+                "name": "order_journey: signup 201",
+                "path": "::order_journey: signup 201"
+            },
+            "order_journey: login 200": {
+                "name": "order_journey: login 200",
+                "path": "::order_journey: login 200",
+                "id": "0fa5b54ddab67f52bf70410ed373cb07",
+                "passes": 451,
+                "fails": 4229
+            },
+            "order_journey: place order 201": {
+                "path": "::order_journey: place order 201",
+                "id": "8ebe3f97ada7991a5967792d707653ca",
+                "passes": 439,
+                "fails": 12,
+                "name": "order_journey: place order 201"
+            },
+            "order_journey: get order 200": {
+                "passes": 439,
+                "fails": 0,
+                "name": "order_journey: get order 200",
+                "path": "::order_journey: get order 200",
+                "id": "6d9861040dff2a85d8b1703a6095f61a"
+            },
+            "order_journey: list my orders 200": {
+                "fails": 0,
+                "name": "order_journey: list my orders 200",
+                "path": "::order_journey: list my orders 200",
+                "id": "734a77b17f4bb131651da2102078b1cd",
+                "passes": 439
+            },
+            "order_journey: cancel 204 or 409": {
+                "name": "order_journey: cancel 204 or 409",
+                "path": "::order_journey: cancel 204 or 409",
+                "id": "937a30469b5f429a000bc7c13d1ae369",
+                "passes": 439,
+                "fails": 0
+            },
+            "repeat_login: login 200": {
+                "name": "repeat_login: login 200",
+                "path": "::repeat_login: login 200",
+                "id": "03fca75825729a8f5715bca782b7ebb5",
+                "passes": 261,
+                "fails": 2129
+            },
+            "repeat_login: list orders 200": {
+                "passes": 261,
+                "fails": 0,
+                "name": "repeat_login: list orders 200",
+                "path": "::repeat_login: list orders 200",
+                "id": "63d5754c60ee947164b20cced2fdf423"
+            },
+            "admin_ops: list all orders 200": {
+                "id": "33f826045e3586826d20c804e7252176",
+                "passes": 1479,
+                "fails": 0,
+                "name": "admin_ops: list all orders 200",
+                "path": "::admin_ops: list all orders 200"
+            },
+            "admin_ops: notification log 200": {
+                "fails": 0,
+                "name": "admin_ops: notification log 200",
+                "path": "::admin_ops: notification log 200",
+                "id": "73c3e74c0663023ce4e9a4eede432ab1",
+                "passes": 1479
+            }
+        }
+    }
+}

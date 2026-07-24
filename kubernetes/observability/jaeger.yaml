@@ -1,0 +1,53 @@
+# All-in-one Jaeger (in-memory storage) — fine for a reference cluster; a real
+# deployment points Jaeger at Elasticsearch/Cassandra for persistent trace storage
+# (this repo's Elasticsearch, see elasticsearch.yaml, could serve that role) or uses
+# the jaegertracing/jaeger-operator Helm chart instead of this hand-rolled Deployment.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: observability
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: jaeger } }
+  template:
+    metadata: { labels: { app: jaeger } }
+    spec:
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.65.0
+          env:
+            - { name: COLLECTOR_OTLP_ENABLED, value: "true" }
+          ports:
+            - { containerPort: 16686, name: ui }
+            - { containerPort: 4317, name: otlp-grpc }
+            - { containerPort: 4318, name: otlp-http }
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+          readinessProbe:
+            httpGet: { path: /, port: 16686 }
+            periodSeconds: 10
+---
+# otel-collector-config.yaml exports traces to jaeger-collector:4317 — this Service
+# name/port is what that hostname resolves to.
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: observability
+spec:
+  selector: { app: jaeger }
+  ports:
+    - { name: otlp-grpc, port: 4317, targetPort: 4317 }
+    - { name: otlp-http, port: 4318, targetPort: 4318 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-query
+  namespace: observability
+spec:
+  selector: { app: jaeger }
+  ports:
+    - { name: ui, port: 16686, targetPort: 16686 }

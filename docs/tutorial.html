@@ -1,0 +1,2457 @@
+<meta charset="UTF-8">
+<title>E-Commerce Platform — Build It Yourself, Step by Step</title>
+<style>
+  :root{
+    --bg:#f6f5f2;
+    --bg-raised:#ffffff;
+    --ink:#1c2024;
+    --ink-dim:#5b6470;
+    --line:#dcd8d0;
+    --line-strong:#c3bdb2;
+    --accent:#3d5a99;
+    --accent-ink:#ffffff;
+    --accent-soft:#e7ecf6;
+    --code-bg:#f0eee9;
+    --ok:#3e7a4c;
+    --warn:#a86a1f;
+    --crit:#a8402f;
+    --shadow: 0 1px 2px rgba(28,32,36,.06), 0 6px 20px rgba(28,32,36,.05);
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161a;
+    --bg-raised:#1b1e23;
+    --ink:#e8e6e1;
+    --ink-dim:#9aa0a8;
+    --line:#2c3036;
+    --line-strong:#3c4149;
+    --accent:#7f9cd6;
+    --accent-ink:#0e1218;
+    --accent-soft:#232a38;
+    --code-bg:#101216;
+    --ok:#6fbf7f;
+    --warn:#d99a4e;
+    --crit:#e2695a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161a; --bg-raised:#1b1e23; --ink:#e8e6e1; --ink-dim:#9aa0a8;
+      --line:#2c3036; --line-strong:#3c4149; --accent:#7f9cd6; --accent-ink:#0e1218;
+      --accent-soft:#232a38; --code-bg:#101216; --ok:#6fbf7f; --warn:#d99a4e; --crit:#e2695a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family: Charter, 'Iowan Old Style', 'Georgia', 'Cambria', serif;
+    font-size:16.5px; line-height:1.6;
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  .eyebrow{
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    font-size:11.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--accent);
+    font-weight:600;
+  }
+  h1,h2,h3,h4{
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight:700; letter-spacing:-.01em; color:var(--ink); text-wrap:balance;
+  }
+  h1{ font-size:clamp(28px,4vw,42px); line-height:1.08; margin:.3em 0 .2em; letter-spacing:-.02em;}
+  h2{ font-size:25px; margin:0 0 4px; padding-top:2px; }
+  h3{ font-size:18px; margin:1.6em 0 .5em; }
+  h4{ font-size:14px; margin:1.3em 0 .4em; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700;}
+  p{ margin:.7em 0; max-width:74ch; color:var(--ink); }
+  a{ color:var(--accent); }
+  code{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:.88em; background:var(--code-bg); padding:.1em .35em; border-radius:4px; }
+  pre{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:13px; line-height:1.55; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code{ background:none; padding:0; }
+  .filename{ font-family:ui-monospace,monospace; font-size:11.5px; color:var(--ink-dim); margin:1.4em 0 -.6em; letter-spacing:.02em; }
+  .filename::before{ content:"📄 "; }
+
+  .shell{ display:grid; grid-template-columns:250px minmax(0,1fr); gap:0; max-width:1320px; margin:0 auto; }
+  @media (max-width:980px){ .shell{ grid-template-columns:1fr; } .toc{ position:static !important; height:auto !important; border-right:none !important; border-bottom:1px solid var(--line); } }
+
+  .toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    border-right:1px solid var(--line); padding:28px 18px 40px 28px;
+  }
+  .toc .brand{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-weight:800; font-size:15px; letter-spacing:-.01em; margin-bottom:2px;}
+  .toc .brand small{ display:block; font-weight:500; color:var(--ink-dim); font-size:11.5px; margin-top:2px;}
+  .toc nav{ margin-top:22px; }
+  .toc a{ display:block; text-decoration:none; color:var(--ink-dim); font-size:13px; padding:5px 0; border-left:2px solid transparent; padding-left:10px; margin-left:-11px; }
+  .toc a:hover{ color:var(--ink); }
+  .toc .part-num{ font-family:ui-monospace,monospace; color:var(--accent); margin-right:6px; font-size:11.5px;}
+  .toc .upcoming{ opacity:.45; }
+  .toc .upcoming a{ pointer-events:none; }
+
+  main{ padding:44px 48px 120px; min-width:0; }
+  @media (max-width:640px){ main{ padding:28px 20px 90px; } }
+
+  header.hero{ max-width:900px; margin-bottom:26px; }
+  .stack-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+  .chip{ font-family:ui-monospace,monospace; font-size:11.5px; border:1px solid var(--line-strong); border-radius:20px; padding:4px 10px; color:var(--ink-dim); }
+
+  section.part{ max-width:900px; padding-top:56px; margin-top:56px; border-top:1px solid var(--line); scroll-margin-top:20px; }
+  section.part:first-of-type{ border-top:none; margin-top:36px; padding-top:0; }
+  .part-label{ display:flex; align-items:baseline; gap:10px; margin-bottom:2px;}
+  .part-label .num{ font-family:ui-monospace,monospace; font-size:13px; color:var(--accent); font-weight:700;}
+  .phase-goal{ font-size:15px; color:var(--ink-dim); margin:.2em 0 1.2em; font-style:italic; }
+
+  .step{ counter-reset:none; margin:2em 0; padding-left:0; }
+  .step-num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:1.7em; height:1.7em; border-radius:50%; background:var(--accent); color:var(--accent-ink);
+    font-family:ui-monospace,monospace; font-size:13px; font-weight:700; margin-right:.5em;
+  }
+
+  table{ border-collapse:collapse; width:100%; margin:1em 0; font-size:14px; }
+  th,td{ text-align:left; padding:7px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th.num,td.num{ text-align:right; font-variant-numeric:tabular-nums; }
+  th{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700; border-bottom:1px solid var(--line-strong); }
+  .table-wrap{ overflow-x:auto; border-radius:8px; }
+
+  .note{ border-left:3px solid var(--accent); background:var(--accent-soft); padding:10px 16px; border-radius:0 8px 8px 0; font-size:14px; margin:1em 0; }
+  .note p{ margin:.3em 0; }
+  .note.warn{ border-left-color:var(--warn); }
+  .note.why{ border-left-color:var(--ok); }
+  .note .tag{ font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; display:block; margin-bottom:4px; color:var(--ink-dim); }
+
+  ul,ol{ padding-left:1.3em; }
+  li{ margin:.3em 0; }
+
+  .tree{ font-family:ui-monospace,monospace; font-size:12.5px; line-height:1.65; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:16px 20px; overflow-x:auto; white-space:pre; }
+
+  .checkpoint{ background:var(--bg-raised); border:1px solid var(--line-strong); border-radius:10px; padding:18px 20px; margin:2em 0; box-shadow:var(--shadow); }
+  .checkpoint h4{ margin-top:0; color:var(--ok); }
+
+  footer{ max-width:900px; margin-top:80px; padding-top:24px; border-top:1px solid var(--line); color:var(--ink-dim); font-size:13px; }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="brand">E-Commerce Platform<small>Build It Yourself</small></div>
+    <nav>
+      <a href="#intro"><span class="part-num">00</span>How This Works</a>
+      <a href="#phase1"><span class="part-num">01</span>One Service, Standalone</a>
+      <a href="#phase2"><span class="part-num">02</span>A Real REST API</a>
+      <a href="#phase3"><span class="part-num">03</span>Sync Integration (Feign)</a>
+      <a href="#phase4"><span class="part-num">04</span>Security &amp; OAuth2</a>
+      <a href="#phase5"><span class="part-num">05</span>Gateway In Front</a>
+      <a href="#phase6"><span class="part-num">06</span>Kafka &amp; the Outbox</a>
+      <a href="#phase7"><span class="part-num">07</span>Hardening It</a>
+      <a href="#phase8"><span class="part-num">08</span>Containerize</a>
+      <a href="#phase9"><span class="part-num">09</span>Kubernetes &amp; Helm</a>
+      <a href="#phase10"><span class="part-num">10</span>Observability</a>
+      <a href="#phase11"><span class="part-num">11</span>Load Test &amp; Tune</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">All 11 phases complete</div>
+      <h1>Build It Yourself, Step by Step</h1>
+      <p>Every other doc in <code>docs/</code> explains a <em>finished</em> platform. This one builds it — starting from one Spring Boot service with nothing else running, adding exactly one new capability per phase, in the order this platform's own development actually happened. Every snippet below is real code from this repo, trimmed back to what exists <em>at this point in the build</em> — later phases add fields and files this one deliberately leaves out, and each addition is called out explicitly rather than sprung on you.</p>
+      <div class="stack-chips">
+        <span class="chip">Java 25</span><span class="chip">Spring Boot 4.1</span><span class="chip">PostgreSQL</span><span class="chip">Flyway</span><span class="chip">OpenFeign</span>
+      </div>
+    </header>
+
+    <section class="part" id="intro">
+      <div class="part-label"><span class="num">00</span></div>
+      <h2>How This Works</h2>
+      <ul>
+        <li><strong>One phase, one new capability.</strong> Phase 1 is deliberately incomplete — no auth, no Kafka, no second service. That's not a simplification for teaching purposes; it's genuinely how you'd start.</li>
+        <li><strong>Every code block is real</strong>, copied from this repo and trimmed to match the phase, not pseudocode. A <span class="filename">filename</span> caption above each block tells you exactly where it lives once the full build is done.</li>
+        <li><strong>Depth is uneven on purpose.</strong> <code>order-service</code> is the vehicle for teaching every concept in this tutorial — go deep there. The other five services in the finished platform repeat its shape; once you've built one from scratch, you don't need to build all six to understand the rest (see the finished versions directly if you want to check the pattern held).</li>
+        <li>All 11 phases are live below — one service standalone, a real REST API, sync integration, security/OAuth2, the gateway, Kafka with the outbox pattern, hardening every gap the earlier phases deliberately left open, containerizing the result, deploying it to Kubernetes via Helm, making all of it observable, and finally proving it under real concurrent load.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PHASE 1 ============ -->
+    <section class="part" id="phase1">
+      <div class="part-label"><span class="num">01</span></div>
+      <h2>One Service, Standalone</h2>
+      <p class="phase-goal">Goal: <code>order-service</code> boots, connects to Postgres, and its schema exists — nothing else yet. No REST endpoints, no other services, no security.</p>
+
+      <div class="step"><span class="step-num">1</span><strong>Start Postgres.</strong> Nothing fancy — a plain container is enough while you're building one service in isolation:</div>
+      <pre><code>docker run -d --name orders-db -e POSTGRES_DB=orders_db \
+  -e POSTGRES_USER=orders_user -e POSTGRES_PASSWORD=orders_pass \
+  -p 5432:5432 postgres:16-alpine</code></pre>
+
+      <div class="step"><span class="step-num">2</span><strong>Declare the dependencies you need right now</strong> — not the ones you'll need in phase 7. Every dependency below earns its place in <em>this</em> phase specifically:</div>
+      <p class="filename">order-service/build.gradle</p>
+      <pre><code>dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.flywaydb:flyway-core'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+}</code></pre>
+      <div class="note">
+        <span class="tag">Why Flyway, not <code>ddl-auto: update</code></span>
+        <p>Hibernate can generate and apply schema changes for you — and it's exactly what you should <em>not</em> use past a prototype. Auto-DDL is unreviewable (no diff, no code review), unpredictable (Hibernate's inference from annotations isn't always what you'd hand-write), and has no rollback story. A Flyway migration is a plain SQL file, checked into git, applied in order, once, ever. This project uses <code>ddl-auto: validate</code> everywhere — Hibernate is only ever allowed to <em>check</em> the schema matches the entities, never change it.</p>
+      </div>
+
+      <div class="step"><span class="step-num">3</span><strong>Write the schema by hand</strong> — the migration <em>is</em> the schema, not a side effect of the entity classes:</div>
+      <p class="filename">order-service/src/main/resources/db/migration/V1__init_orders.sql</p>
+      <pre><code>CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE orders (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id   UUID NOT NULL,
+    status        VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    total_amount  NUMERIC(12,2) NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    version       BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT ck_orders_status CHECK (status IN
+        ('PENDING','CONFIRMED','PAID','SHIPPED','DELIVERED','CANCELLED','FAILED')),
+    CONSTRAINT ck_orders_total_amount CHECK (total_amount >= 0)
+);
+
+CREATE INDEX idx_orders_customer ON orders (customer_id, created_at DESC);
+
+CREATE TABLE order_items (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id    UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id  UUID NOT NULL,
+    quantity    INT NOT NULL,
+    unit_price  NUMERIC(12,2) NOT NULL,
+    CONSTRAINT ck_order_items_quantity CHECK (quantity > 0)
+);
+
+CREATE INDEX idx_order_items_order ON order_items (order_id);</code></pre>
+      <div class="note">
+        <span class="tag">Why <code>gen_random_uuid()</code>, not an auto-increment integer</span>
+        <p>A sequential integer PK leaks how many rows exist and in what order (a competitor watching order IDs can estimate your order volume). A client-generatable UUID also means an <code>Order</code> object can get an ID the moment it's constructed in Java, before it's ever persisted — useful the instant you need to reference it before the INSERT completes.</p>
+      </div>
+
+      <div class="step"><span class="step-num">4</span><strong>Map the schema to entities</strong> — deliberately minimal for this phase. No idempotency key, no outbox reference, nothing from later phases:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/entity/Order.java</p>
+      <pre><code>@Entity
+@Table(name = "orders")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(name = "customer_id", nullable = false)
+    private UUID customerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private OrderStatus status = OrderStatus.PENDING;
+
+    @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal totalAmount;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List&lt;OrderItem&gt; items = new ArrayList&lt;&gt;();
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Version
+    private Long version;
+
+    public static Order create(UUID customerId, List&lt;OrderItem&gt; items, BigDecimal totalAmount) {
+        Order order = new Order();
+        order.customerId = customerId;
+        order.totalAmount = totalAmount;
+        order.status = OrderStatus.PENDING;
+        items.forEach(order::addItem);
+        return order;
+    }
+
+    public void addItem(OrderItem item) {
+        items.add(item);
+        item.setOrder(this);
+    }
+
+    @PrePersist
+    void onCreate() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = Instant.now();
+    }
+}</code></pre>
+      <div class="note">
+        <span class="tag">Three details worth noticing now, before they're habit</span>
+        <p><code>@NoArgsConstructor(access = PROTECTED)</code> — JPA requires a no-args constructor to exist, but nothing outside this class should ever call it directly; <code>protected</code> forces every other caller through <code>Order.create(...)</code>, which is the only place that can produce a valid, fully-initialized order. <code>@Setter</code> on the whole class is a pragmatic tradeoff, not a recommendation — it's convenient for JPA and Lombok, but it means nothing stops code elsewhere from calling <code>order.setStatus(...)</code> directly instead of going through a method that enforces valid transitions; that gap gets closed in phase 2's service layer, not the entity. <code>@Version</code> is optimistic locking — a concurrent update to the same row fails loudly (<code>OptimisticLockException</code>) instead of silently overwriting.</p>
+      </div>
+
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/entity/OrderItem.java</p>
+      <pre><code>@Entity
+@Table(name = "order_items")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class OrderItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @Column(name = "product_id", nullable = false)
+    private UUID productId;
+
+    @Column(nullable = false)
+    private int quantity;
+
+    @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
+    private BigDecimal unitPrice;
+
+    public static OrderItem of(UUID productId, int quantity, BigDecimal unitPrice) {
+        OrderItem item = new OrderItem();
+        item.productId = productId;
+        item.quantity = quantity;
+        item.unitPrice = unitPrice;
+        return item;
+    }
+
+    public BigDecimal lineTotal() {
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
+}</code></pre>
+
+      <div class="step"><span class="step-num">5</span><strong>One repository interface</strong> — Spring Data JPA writes the implementation for you at runtime:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/repository/OrderRepository.java</p>
+      <pre><code>public interface OrderRepository extends JpaRepository&lt;Order, UUID&gt; {
+}</code></pre>
+
+      <div class="step"><span class="step-num">6</span><strong>Point Spring at the database:</strong></div>
+      <p class="filename">order-service/src/main/resources/application.yml</p>
+      <pre><code>spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orders_db
+    username: orders_user
+    password: orders_pass
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    locations: classpath:db/migration
+
+server:
+  port: 8084</code></pre>
+      <div class="note">
+        <span class="tag">Why <code>open-in-view: false</code>, set here on day one</span>
+        <p>Spring Boot's default (<code>true</code>) keeps the Hibernate session open for the entire HTTP request, so a lazy-loaded association can be fetched from a Thymeleaf template without a <code>LazyInitializationException</code>. This platform has no server-rendered views — every response is JSON, assembled deliberately in the service layer — so that convenience is pure downside: it hides N+1 queries and keeps a DB connection checked out for the whole request instead of just the transaction. Turning it off on day one means you find lazy-loading mistakes immediately, as a clear exception, instead of as a mysterious slow endpoint months later.</p>
+      </div>
+
+      <div class="step"><span class="step-num">7</span><strong>The application class</strong> — nothing but the annotation Spring Boot needs to find everything else on the classpath:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/OrderServiceApplication.java</p>
+      <pre><code>@SpringBootApplication
+public class OrderServiceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderServiceApplication.class, args);
+    }
+}</code></pre>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <p><code>./gradlew :order-service:bootRun</code> should start cleanly, Flyway should log <code>Successfully applied 1 migration</code>, and <code>curl localhost:8084/actuator/health</code> — wait, actuator isn't a dependency yet, so that specific check comes later. For now: no startup errors, and <code>psql orders_db -c '\dt'</code> shows <code>orders</code> and <code>order_items</code>. That's the whole goal of this phase — a service that boots and owns a real, versioned schema. It doesn't do anything useful yet; phase 2 fixes that.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 2 ============ -->
+    <section class="part" id="phase2">
+      <div class="part-label"><span class="num">02</span></div>
+      <h2>A Real REST API</h2>
+      <p class="phase-goal">Goal: <code>POST /api/v1/orders</code> and <code>GET /api/v1/orders/{id}</code> work end to end — with validated input, a response shape that isn't just the entity, and errors that look like errors instead of stack traces.</p>
+
+      <div class="step"><span class="step-num">1</span><strong>Add validation to the dependency list:</strong></div>
+      <p class="filename">order-service/build.gradle</p>
+      <pre><code>implementation 'org.springframework.boot:spring-boot-starter-validation'</code></pre>
+
+      <div class="step"><span class="step-num">2</span><strong>DTOs — never put <code>@Entity</code> classes on the wire.</strong> The request and response shapes are their own types:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/dto/OrderRequest.java</p>
+      <pre><code>public record OrderRequest(
+        @NotNull UUID customerId,
+        @NotEmpty @Valid List&lt;OrderItemRequest&gt; items) {
+}</code></pre>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/dto/OrderItemRequest.java</p>
+      <pre><code>public record OrderItemRequest(
+        @NotNull UUID productId,
+        @Min(1) @Max(999) int quantity) {
+}</code></pre>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/dto/OrderResponse.java</p>
+      <pre><code>public record OrderResponse(
+        UUID id,
+        UUID customerId,
+        OrderStatus status,
+        BigDecimal totalAmount,
+        List&lt;OrderItemResponse&gt; items,
+        Instant createdAt,
+        Instant updatedAt) {
+}</code></pre>
+      <div class="note">
+        <span class="tag">Why not just return the entity</span>
+        <p>Three reasons, in order of how quickly they bite you. First, <code>Order.items</code> is lazy — serializing it outside a transaction throws. Second, an entity's shape is coupled to the database; adding an internal-only column (an idempotency key, in phase 7) would leak straight into every API response unless the DTO is a deliberate, separate boundary. Third — the request and response DTOs aren't even the same fields: a request needs <code>customerId</code> and item quantities; a response needs computed prices and a server-assigned <code>id</code>. Reusing one class for both means either accepting fields a client shouldn't set, or awkwardly nulling things out — a real category of security bug (mass-assignment) that a separate request DTO makes structurally impossible.</p>
+      </div>
+
+      <div class="step"><span class="step-num">3</span><strong>The service layer</strong> — this is where <code>Order.create(...)</code> actually gets called, and where business rules that don't belong on the entity or the controller live:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/service/impl/OrderServiceImpl.java (excerpt)</p>
+      <pre><code>@Service
+@RequiredArgsConstructor
+public class OrderServiceImpl implements OrderService {
+
+    private final OrderRepository orderRepository;
+    private final OrderMapper orderMapper;
+
+    @Override
+    @Transactional
+    public OrderResponse createOrder(OrderRequest request) {
+        var items = request.items().stream()
+                .map(i -&gt; OrderItem.of(i.productId(), i.quantity(), BigDecimal.TEN)) // price lookup arrives in phase 3
+                .toList();
+
+        BigDecimal total = items.stream()
+                .map(OrderItem::lineTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Order saved = orderRepository.save(Order.create(request.customerId(), items, total));
+        return orderMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getOrder(UUID id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -&gt; new OrderNotFoundException(id));
+        return orderMapper.toResponse(order);
+    }
+}</code></pre>
+      <div class="note warn">
+        <span class="tag">Deliberately not production code yet</span>
+        <p>That hardcoded <code>BigDecimal.TEN</code> is a placeholder — this phase doesn't have a product catalog to price against yet (that's phase 3's actual reason for existing: order-service needs to <em>ask another service</em> for a real price and stock check). Building a fake local price table here would be throwaway work; better to feel the gap and let phase 3 fill it for a real reason.</p>
+      </div>
+
+      <div class="step"><span class="step-num">4</span><strong>The controller</strong> — thin on purpose. It translates HTTP into a service call and a service result into an HTTP response; it has no business logic of its own:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/controller/OrderController.java (excerpt)</p>
+      <pre><code>@RestController
+@RequestMapping("/api/v1/orders")
+@RequiredArgsConstructor
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @GetMapping("/{id}")
+    public OrderResponse get(@PathVariable UUID id) {
+        return orderService.getOrder(id);
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;OrderResponse&gt; create(@Valid @RequestBody OrderRequest request) {
+        OrderResponse body = orderService.createOrder(request);
+        return ResponseEntity.created(URI.create("/api/v1/orders/" + body.id())).body(body);
+    }
+}</code></pre>
+      <div class="note">
+        <span class="tag">Why <code>@Valid</code> on the parameter, not inside the method</span>
+        <p><code>@Valid</code> triggers Bean Validation <em>before</em> the method body runs — an invalid request never reaches your business logic at all, it's rejected by a <code>MethodArgumentNotValidException</code> Spring throws on your behalf. That's what step 5 turns into a proper error response instead of a generic 400 with no detail.</p>
+      </div>
+
+      <div class="step"><span class="step-num">5</span><strong>Domain exceptions, and one place that turns all of them into real HTTP responses:</strong></div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/exception/OrderNotFoundException.java</p>
+      <pre><code>public class OrderNotFoundException extends RuntimeException {
+    public OrderNotFoundException(UUID orderId) {
+        super("Order not found: " + orderId);
+    }
+}</code></pre>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/exception/GlobalExceptionHandler.java (excerpt)</p>
+      <pre><code>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final URI PROBLEM_BASE = URI.create("https://api.company.com/problems/");
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ProblemDetail handleNotFound(OrderNotFoundException ex, HttpServletRequest req) {
+        return problem(HttpStatus.NOT_FOUND, "order-not-found", "Order Not Found", ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
+        String detail = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(fe -&gt; "%s %s".formatted(fe.getField(), fe.getDefaultMessage()))
+                .orElse("Validation failed");
+        return problem(HttpStatus.BAD_REQUEST, "validation-error", "Validation Failed", detail, req);
+    }
+
+    private ProblemDetail problem(HttpStatus status, String typeSuffix, String title, String detail,
+                                   HttpServletRequest req) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+        problem.setType(PROBLEM_BASE.resolve(typeSuffix));
+        problem.setTitle(title);
+        problem.setInstance(URI.create(req.getRequestURI()));
+        return problem;
+    }
+}</code></pre>
+      <div class="note">
+        <span class="tag">Why one handler class instead of try/catch in every controller method</span>
+        <p><code>@RestControllerAdvice</code> intercepts exceptions from <em>every</em> controller in the service — write the "how do I turn this failure into an HTTP response" logic exactly once. Returning Spring's own <code>ProblemDetail</code> (rather than a hand-rolled error DTO) means the response is <a href="https://datatracker.ietf.org/doc/html/rfc9457">RFC 9457</a>-shaped for free — <code>type</code>, <code>title</code>, <code>status</code>, <code>detail</code>, <code>instance</code> are all fields a generic HTTP client already knows how to parse, not a bespoke shape every client has to learn.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <pre><code>curl -i -X POST localhost:8084/api/v1/orders -H 'Content-Type: application/json' \
+  -d '{"customerId":"9c2f6e1a-....","items":[{"productId":"7ab1....","quantity":2}]}'
+# 201 Created, Location header, a real OrderResponse body
+
+curl -i -X POST localhost:8084/api/v1/orders -H 'Content-Type: application/json' -d '{}'
+# 400 Bad Request, application/problem+json, detail: "customerId must not be null"
+
+curl -i localhost:8084/api/v1/orders/00000000-0000-0000-0000-000000000000
+# 404 Not Found, application/problem+json</code></pre>
+        <p>A real, independently useful API — you could stop here and have something shippable, just not integrated with anything else yet. That's exactly what phase 3 changes.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 3 ============ -->
+    <section class="part" id="phase3">
+      <div class="part-label"><span class="num">03</span></div>
+      <h2>Synchronous Integration (OpenFeign)</h2>
+      <p class="phase-goal">Goal: order-service asks a second, independently-running service — inventory-service — whether stock exists before confirming an order, over real HTTP, with a defined behavior for when that call fails.</p>
+
+      <div class="step"><span class="step-num">1</span><strong>The other side first — a minimal inventory-service</strong> with one endpoint order-service is actually going to call. Building the callee before the caller means you can test each side independently:</div>
+      <p class="filename">inventory-service/src/main/java/com/ecommerce/inventory/controller/InventoryController.java (excerpt)</p>
+      <pre><code>@RestController
+@RequestMapping("/api/v1/inventory")
+@RequiredArgsConstructor
+public class InventoryController {
+
+    private final InventoryService inventoryService;
+
+    @GetMapping("/{productId}/availability")
+    public StockAvailabilityResponse checkAvailability(@PathVariable UUID productId,
+                                                         @RequestParam int quantity) {
+        return inventoryService.checkAvailability(productId, quantity);
+    }
+
+    @PostMapping("/{productId}/reserve")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reserve(@PathVariable UUID productId, @Valid @RequestBody ReserveStockRequest request) {
+        inventoryService.reserve(productId, request.quantity());
+    }
+}</code></pre>
+      <p>Same phase-1/phase-2 pattern as order-service — entity, repository, service, controller, its own Postgres, its own Flyway migration. Build it the same way; the point of this phase isn't repeating that, it's what comes next.</p>
+
+      <div class="step"><span class="step-num">2</span><strong>Add Feign to order-service</strong> and turn it on:</div>
+      <p class="filename">order-service/build.gradle</p>
+      <pre><code>implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'</code></pre>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/OrderServiceApplication.java</p>
+      <pre><code>@SpringBootApplication
+@EnableFeignClients
+public class OrderServiceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderServiceApplication.class, args);
+    }
+}</code></pre>
+
+      <div class="step"><span class="step-num">3</span><strong>Declare the client as an interface</strong> — Feign generates the HTTP implementation at runtime, so calling another service reads exactly like calling a local method:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/integration/InventoryClient.java</p>
+      <pre><code>@FeignClient(name = "inventory-service")
+public interface InventoryClient {
+
+    @GetMapping("/api/v1/inventory/{productId}/availability")
+    StockAvailabilityResponse checkAvailability(@PathVariable("productId") UUID productId,
+                                                 @RequestParam("quantity") int quantity);
+
+    @PostMapping("/api/v1/inventory/{productId}/reserve")
+    void reserve(@PathVariable("productId") UUID productId, @RequestBody ReserveStockRequest request);
+}</code></pre>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/integration/dto/StockAvailabilityResponse.java</p>
+      <pre><code>public record StockAvailabilityResponse(UUID productId, boolean available, int quantityOnHand) {
+}</code></pre>
+      <p>Wire it into <code>application.yml</code> so <code>"inventory-service"</code> resolves to somewhere real:</p>
+      <p class="filename">order-service/src/main/resources/application.yml</p>
+      <pre><code>spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            inventory-service[0]:
+              uri: http://localhost:8083</code></pre>
+
+      <div class="step"><span class="step-num">4</span><strong>Run both services and watch it work</strong> — then watch it break. Stop inventory-service and call order-service's create endpoint again:</div>
+      <pre><code>curl -i -X POST localhost:8084/api/v1/orders -H 'Content-Type: application/json' -d '{...}'
+# 500 Internal Server Error
+# {"type":".../internal-error","detail":"An unexpected error occurred"}</code></pre>
+      <div class="note warn">
+        <span class="tag">This is the bug this phase exists to fix</span>
+        <p>A raw <code>FeignException</code> (connection refused) fell all the way through to <code>GlobalExceptionHandler</code>'s generic <code>Exception</code> handler and came out as a <em>500</em> — indistinguishable from an actual bug in order-service's own code, when the real problem is "a dependency is down," which is a completely different, expected, plannable failure mode. A caller (and you, reading the logs at 2am) needs to be able to tell those apart.</p>
+      </div>
+
+      <div class="step"><span class="step-num">5</span><strong>A fallback factory</strong> translates that failure into a domain exception on purpose, instead of leaving it to fall through as a generic 500:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/integration/InventoryClientFallbackFactory.java</p>
+      <pre><code>@Component
+public class InventoryClientFallbackFactory implements FallbackFactory&lt;InventoryClient&gt; {
+
+    private static final Logger log = LoggerFactory.getLogger(InventoryClientFallbackFactory.class);
+
+    @Override
+    public InventoryClient create(Throwable cause) {
+        return new InventoryClient() {
+            @Override
+            public StockAvailabilityResponse checkAvailability(UUID productId, int quantity) {
+                log.warn("inventory-service unavailable while checking availability for {}", productId, cause);
+                throw new InventoryUnavailableException(productId, cause);
+            }
+
+            @Override
+            public void reserve(UUID productId, ReserveStockRequest request) {
+                log.warn("inventory-service unavailable while reserving stock for {}", productId, cause);
+                throw new InventoryUnavailableException(productId, cause);
+            }
+        };
+    }
+}</code></pre>
+      <p>Wire it onto the client, and add a matching handler to <code>GlobalExceptionHandler</code> so it comes out as a proper <code>409</code>, not a <code>500</code>:</p>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/integration/InventoryClient.java</p>
+      <pre><code>@FeignClient(name = "inventory-service", fallbackFactory = InventoryClientFallbackFactory.class)
+public interface InventoryClient {
+    // ...unchanged...
+}</code></pre>
+      <pre><code>@ExceptionHandler(InventoryUnavailableException.class)
+public ProblemDetail handleInventory(InventoryUnavailableException ex, HttpServletRequest req) {
+    return problem(HttpStatus.CONFLICT, "inventory-unavailable", "Inventory Unavailable", ex.getMessage(), req);
+}</code></pre>
+      <div class="note why">
+        <span class="tag">Why a factory, not a plain fallback instance</span>
+        <p>Feign supports a simpler <code>fallback = SomeBean.class</code> too — but a plain fallback has no access to <em>why</em> the call failed, so <code>log.warn(...)</code> above would have nothing useful to say. <code>FallbackFactory</code> receives the actual <code>Throwable</code>, which is the difference between a log line that says "inventory-service unavailable" and one that says that <em>and</em> shows the real connection-refused/timeout/5xx underneath it — the thing you'll actually need at 2am.</p>
+      </div>
+
+      <div class="step"><span class="step-num">6</span><strong>Two headers every Feign call needs to forward</strong> — not obvious until you notice they're silently missing:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/config/FeignClientConfig.java</p>
+      <pre><code>@Configuration
+public class FeignClientConfig {
+
+    // Without this, inventory-service's own logs have no way to connect a request back to
+    // the order-service call that triggered it — each service's logs become an island.
+    @Bean
+    public RequestInterceptor correlationIdPropagationInterceptor() {
+        return template -&gt; {
+            String correlationId = MDC.get(CorrelationIdConstants.MDC_KEY);
+            if (correlationId != null) {
+                template.header(CorrelationIdConstants.HEADER, correlationId);
+            }
+        };
+    }
+
+    // inventory-service validates its own caller's JWT independently — it doesn't blindly
+    // trust that "this request came from order-service" is enough. Without this interceptor,
+    // every Feign call from an authenticated request would arrive at inventory-service with
+    // no token at all and get rejected with 401, even though the original caller was valid.
+    @Bean
+    public RequestInterceptor bearerTokenPropagationInterceptor() {
+        return template -&gt; {
+            var attributes = RequestContextHolder.getRequestAttributes();
+            if (attributes instanceof ServletRequestAttributes servletAttributes) {
+                String authorization = servletAttributes.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
+                if (authorization != null) {
+                    template.header(HttpHeaders.AUTHORIZATION, authorization);
+                }
+            }
+        };
+    }
+}</code></pre>
+      <p>Reference it from the client:</p>
+      <pre><code>@FeignClient(name = "inventory-service", configuration = FeignClientConfig.class,
+             fallbackFactory = InventoryClientFallbackFactory.class)
+public interface InventoryClient { /* ... */ }</code></pre>
+      <div class="note">
+        <span class="tag">Neither of these has a payoff yet</span>
+        <p>Correlation ID propagation is invisible until phase 10 (Observability), when you'll search Kibana for one ID and expect to see the request's whole cross-service trail. Auth forwarding is invisible until the very next phase, which builds the service issuing these tokens and makes every downstream service validate them independently. Wiring both now, while the reason is still abstract, means neither phase needs to come back and retrofit this file — the integration point exists once, correctly, from here on.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <p>With both services running: placing an order calls out to inventory-service in real time and the response reflects real stock. Stop inventory-service and the same request now returns a clean <code>409 inventory-unavailable</code> instead of a <code>500</code> — a caller (or a retry policy, added in phase 7) can actually act on that distinction. This is also the first point where "the platform" stops being one service and starts being a <em>system</em> — every request above ran unauthenticated, which the next phase fixes before anything else gets built on top of it. Phase 5 then puts a gateway in front so a client only ever talks to one address, and phase 6 adds the asynchronous half of inter-service communication that a synchronous call like this one is deliberately not suited for.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 4 ============ -->
+    <section class="part" id="phase4">
+      <div class="part-label"><span class="num">04</span></div>
+      <h2>Security &amp; OAuth2</h2>
+      <p class="phase-goal">Goal: a new service, <code>user-service</code>, that authenticates a user and issues a token. Every other service — <code>order-service</code> included — validates that token completely independently, with no network call back to user-service on every request. Understanding <em>why</em> that's possible is most of this phase; the Spring config is short once the concept is clear.</p>
+
+      <h3>First, without any code: what OAuth2.0 actually is</h3>
+      <p>Worth getting precise about, because the name gets used loosely. <strong>OAuth 2.0 is an authorization framework, not an authentication protocol</strong> — it's a standard way for a <em>client</em> to get a token proving it has permission to act on a <em>resource owner's</em> behalf, without ever seeing that owner's password. It defines four roles:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Role</th><th>In the classic OAuth2 story</th><th>In this platform</th></tr></thead>
+        <tbody>
+          <tr><td>Resource Owner</td><td>The end user</td><td>The customer/admin logging in</td></tr>
+          <tr><td>Client</td><td>The app requesting access on the owner's behalf</td><td>Whatever calls the API — a frontend, Postman, another service</td></tr>
+          <tr><td>Authorization Server</td><td>Issues tokens after verifying identity/consent</td><td><code>user-service</code></td></tr>
+          <tr><td>Resource Server</td><td>Hosts the protected resource, accepts the token</td><td>Every service — <code>order-service</code>, <code>payment-service</code>, all of them, <em>including</em> <code>user-service</code> for its own endpoints</td></tr>
+        </tbody>
+      </table></div>
+      <p>The spec defines several <strong>grant types</strong> — different recipes for how a client gets a token, chosen based on how much you trust the client: <em>Authorization Code</em> (the one behind "Sign in with Google" — the user authenticates on the authorization server's own page, never handing credentials to the client at all), <em>Client Credentials</em> (service-to-service, no user involved), and the largely-deprecated <em>Resource Owner Password Credentials</em> — the client collects a username and password directly and exchanges them for a token in one call.</p>
+      <div class="note warn">
+        <span class="tag">Where this platform's login honestly sits — and doesn't</span>
+        <p><code>POST /api/v1/auth/login</code> below is shaped like the Password grant: email and password go in, a token comes out, in one request. The spec discourages that grant for third-party clients specifically because it requires the client to handle the raw password — a real security risk if you don't fully trust whoever's calling. It's still a reasonable, common pattern for a <em>first-party</em> system where the "client" is your own frontend calling your own backend, which is the case here. What this build does <em>not</em> implement: client registration, the Authorization Code flow, PKCE, consent screens, or scopes — the full machinery a spec-complete OAuth2 Authorization Server (Spring Authorization Server, Keycloak, Auth0) provides. This is deliberately a simplified, first-party-only JWT issuance pattern that borrows OAuth2's Resource Server <em>validation</em> ideas, not a complete implementation of the spec. Knowing exactly which parts are and aren't here is the difference between using this pattern correctly and accidentally exposing it to a third party it was never designed for.</p>
+      </div>
+      <div class="note">
+        <span class="tag">One more distinction worth having: OAuth2 vs OpenID Connect</span>
+        <p>OAuth2 alone answers "is this request authorized?" — it says nothing about <em>who</em> the user is beyond an opaque token. <strong>OpenID Connect (OIDC)</strong> is a thin identity layer built on top of OAuth2 that adds an actual authentication result — the <code>id_token</code>, itself a JWT with standardized identity claims (<code>sub</code>, <code>email</code>, <code>name</code>). "Log in with Google" is OIDC, not bare OAuth2. This platform's access token carries identity claims directly (<code>sub</code>, <code>email</code>, <code>roles</code>) without a separate <code>id_token</code> — a simplification that works because there's exactly one first-party client, not an ecosystem of third-party ones that would need a standardized identity contract.</p>
+      </div>
+      <p>Neither OAuth2 nor OIDC mandates a token <em>format</em> — an access token can be an opaque random string the resource server checks against the authorization server on every request (a network call, but instantly revocable), or a <strong>JWT</strong>: a self-contained, cryptographically signed token the resource server can verify entirely on its own, no network call, at the cost of not being revocable before it naturally expires. This platform uses JWTs for exactly that trade: an order placed under load shouldn't cost order-service a network round-trip to user-service just to check who's asking.</p>
+
+      <h3>Issuing a token — build <code>user-service</code></h3>
+      <div class="step"><span class="step-num">1</span><strong>Dependencies</strong> — <code>spring-boot-starter-security</code> and <code>spring-boot-starter-oauth2-resource-server</code> together, plus the JWT library actually doing the signing:</div>
+      <p class="filename">user-service/build.gradle</p>
+      <pre><code>implementation 'org.springframework.boot:spring-boot-starter-web'
+implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+implementation 'org.springframework.boot:spring-boot-starter-security'
+implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'</code></pre>
+      <div class="note">
+        <span class="tag">Two different security starters, two different jobs</span>
+        <p><code>spring-boot-starter-security</code> gives you the framework — <code>SecurityFilterChain</code>, <code>PasswordEncoder</code>, the whole authentication/authorization machinery. <code>spring-boot-starter-oauth2-resource-server</code> is specifically the piece that validates an incoming bearer token — <code>JwtDecoder</code>, the <code>oauth2ResourceServer()</code> DSL. <code>jjwt</code> (io.jsonwebtoken) is unrelated to either — it's what actually <em>builds and signs</em> a token, which only <code>user-service</code> ever needs to do. Every other service in this platform takes the second dependency without the third: they validate tokens, they never mint one.</p>
+      </div>
+
+      <div class="step"><span class="step-num">2</span><strong>The schema and entities</strong> — a user and a set of roles, nothing else yet (account lockout is a phase&nbsp;7 addition):</div>
+      <p class="filename">user-service/src/main/resources/db/migration/V1__init_users.sql (excerpt)</p>
+      <pre><code>CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE users (
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email          VARCHAR(255) NOT NULL,
+    password_hash  VARCHAR(255) NOT NULL,
+    first_name     VARCHAR(100) NOT NULL,
+    last_name      VARCHAR(100) NOT NULL,
+    status         VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    created_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    version        BIGINT       NOT NULL DEFAULT 0,
+    CONSTRAINT uq_users_email UNIQUE (email)
+);
+
+CREATE TABLE roles (
+    id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name  VARCHAR(50) NOT NULL,
+    CONSTRAINT uq_roles_name UNIQUE (name)
+);
+
+CREATE TABLE user_roles (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_id UUID NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
+    PRIMARY KEY (user_id, role_id)
+);
+
+INSERT INTO roles (name) VALUES ('ADMIN'), ('MANAGER'), ('CUSTOMER');</code></pre>
+      <p class="filename">user-service/src/main/java/com/ecommerce/user/entity/User.java (excerpt)</p>
+      <pre><code>@Entity
+@Table(name = "users")
+@Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class User {
+
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    private String firstName;
+    private String lastName;
+
+    @ManyToMany
+    @JoinTable(name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set&lt;Role&gt; roles = new HashSet&lt;&gt;();
+
+    public static User create(String email, String passwordHash, String firstName, String lastName) {
+        User user = new User();
+        user.email = email;
+        user.passwordHash = passwordHash;
+        user.firstName = firstName;
+        user.lastName = lastName;
+        return user;
+    }
+}</code></pre>
+      <div class="note warn">
+        <span class="tag">The single most important line in this entire phase</span>
+        <p>The field is <code>passwordHash</code>, never <code>password</code>. A plaintext password must never exist anywhere past the moment it arrives in the login request — not in a variable that outlives the request, not in a log line, not in the database. What actually produces that hash is the next step.</p>
+      </div>
+
+      <div class="step"><span class="step-num">3</span><strong>Hash passwords with BCrypt</strong> — one bean, registered once:</div>
+      <p class="filename">user-service/src/main/java/com/ecommerce/user/security/SecurityConfig.java (excerpt)</p>
+      <pre><code>@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder(12);
+}</code></pre>
+      <div class="note why">
+        <span class="tag">Why BCrypt, specifically — not SHA-256, not MD5</span>
+        <p>A general-purpose hash like SHA-256 is <em>fast</em> — a property that's exactly wrong for passwords. Fast means an attacker with a stolen hash table can try billions of candidate passwords a second on commodity hardware. BCrypt is deliberately, tunably <em>slow</em> (the <code>12</code> above is the cost factor — each increment roughly doubles the work), and generates a random salt automatically per password, so two users with the same password get different hashes and a precomputed rainbow table is useless against it. Contrast this with phase&nbsp;3's <code>SHA-256</code> hashing of <em>refresh tokens</em>, which is correct there for the opposite reason: a refresh token already has 256 bits of real randomness (<code>UUID.randomUUID()</code> twice, concatenated) — there's no low-entropy human guess to defend against, so a fast hash is fine, and BCrypt's slowness there would just be wasted CPU on every token refresh. Same-looking problem, opposite right answer, because the input entropy is completely different.</p>
+      </div>
+
+      <div class="step"><span class="step-num">4</span><strong>The login flow</strong> — verify the password, issue a token:</div>
+      <p class="filename">user-service/src/main/java/com/ecommerce/user/service/impl/AuthServiceImpl.java (excerpt)</p>
+      <pre><code>@Service
+@RequiredArgsConstructor
+public class AuthServiceImpl implements AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .filter(u -&gt; passwordEncoder.matches(request.password(), u.getPasswordHash()))
+                .orElseThrow(InvalidCredentialsException::new);
+
+        String accessToken = jwtService.generateAccessToken(user);
+        return new LoginResponse(accessToken, jwtService.accessTtlSeconds());
+    }
+}</code></pre>
+      <div class="note">
+        <span class="tag">One line doing two jobs on purpose</span>
+        <p><code>.filter(u -&gt; passwordEncoder.matches(...))</code> means "user not found" and "wrong password" both fall through to the exact same <code>InvalidCredentialsException</code>. That's deliberate, not an oversight — a login endpoint that returns a different error for "no such email" versus "wrong password" hands an attacker a free way to enumerate which emails have accounts. One generic error, always, regardless of which half was wrong.</p>
+      </div>
+
+      <div class="step"><span class="step-num">5</span><strong>Generate the token</strong> — this is the only class in the whole platform that signs anything:</div>
+      <p class="filename">user-service/src/main/java/com/ecommerce/user/security/JwtService.java</p>
+      <pre><code>@Component
+public class JwtService {
+
+    private final SecretKey signingKey;
+    private final long accessTtlMinutes;
+
+    public JwtService(@Value("${security.jwt.secret}") String secret,
+                       @Value("${security.jwt.access-ttl-minutes}") long accessTtlMinutes) {
+        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.accessTtlMinutes = accessTtlMinutes;
+    }
+
+    public String generateAccessToken(User user) {
+        List&lt;String&gt; roles = user.getRoles().stream().map(Role::getName).toList();
+        return Jwts.builder()
+                .subject(user.getId().toString())
+                .claim("email", user.getEmail())
+                .claim("roles", roles)
+                .issuedAt(new Date())
+                .expiration(Date.from(Instant.now().plus(accessTtlMinutes, ChronoUnit.MINUTES)))
+                .signWith(signingKey, Jwts.SIG.HS512)
+                .compact();
+    }
+
+    public long accessTtlSeconds() {
+        return accessTtlMinutes * 60;
+    }
+}</code></pre>
+      <p>A JWT is three base64url-encoded segments joined by dots — <code>header.payload.signature</code>. Nothing in the header or payload is encrypted; both are just base64, trivially decodable by anyone, which is exactly why nothing sensitive (no password, no raw PII beyond what's already public to the token holder) belongs in the claims. What actually matters is the <strong>signature</strong> — proof the payload hasn't been altered since <code>user-service</code> signed it. Decode the payload this generates and it reads like:</p>
+      <pre><code>{
+  "sub": "9c2f6e1a-...",
+  "email": "admin@example.com",
+  "roles": ["ADMIN"],
+  "iat": 1784800000,
+  "exp": 1784800900
+}</code></pre>
+      <div class="note">
+        <span class="tag">Why access tokens are short-lived (15 minutes here) instead of long-lived</span>
+        <p>A JWT can't be revoked before it expires — there's no database row to delete, no server-side state at all, that's the entire point of it being self-contained. So the blast radius of a stolen access token is bounded by how long it's valid for, not by anyone's ability to react. Fifteen minutes is short enough that a compromised token is a minor incident, not an open-ended one — and short-lived access tokens are exactly why a <em>separate</em>, revocable refresh token exists: without one, a 15-minute session would mean re-entering a password every 15 minutes, which nobody would tolerate. <code>RefreshToken</code> — opaque, random, hashed with SHA-256, and <em>looked up in a database</em> on every use — is what makes revocation possible at all: delete or expire that one row and every future refresh attempt fails immediately, regardless of how long the (now-refused) refresh token itself would otherwise have remained valid.</p>
+      </div>
+
+      <h3>Validating a token — the Resource Server side</h3>
+      <p>Every other service — <code>order-service</code> is the example here, but this is identical in all six — needs to answer "is this bearer token genuine, unexpired, and what can its holder do" without ever calling <code>user-service</code>. Spring Security's OAuth2 Resource Server support is built exactly for this.</p>
+
+      <div class="step"><span class="step-num">6</span><strong>Add the dependency</strong> (no <code>jjwt</code> here — this service only ever verifies, never signs):</div>
+      <p class="filename">order-service/build.gradle</p>
+      <pre><code>implementation 'org.springframework.boot:spring-boot-starter-security'
+implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'</code></pre>
+
+      <div class="step"><span class="step-num">7</span><strong>Decode and verify</strong> — a <code>JwtDecoder</code> checks the signature and expiry; a <code>JwtAuthenticationConverter</code> turns the <code>roles</code> claim into something Spring Security's <code>hasRole()</code>/<code>hasAnyRole()</code> understands:</div>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/security/SecurityConfig.java</p>
+      <pre><code>@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    public JwtDecoder jwtDecoder(@Value("${security.jwt.secret}") String secret) {
+        var key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+        return NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS512).build();
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        var authorities = new JwtGrantedAuthoritiesConverter();
+        authorities.setAuthoritiesClaimName("roles");
+        authorities.setAuthorityPrefix("ROLE_");
+
+        var converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authorities);
+        return converter;
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtDecoder jwtDecoder,
+                                            JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
+        return http
+                .csrf(csrf -&gt; csrf.disable())
+                .sessionManagement(sm -&gt; sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -&gt; auth
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/orders").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/orders/**").hasAnyRole("CUSTOMER", "MANAGER", "ADMIN")
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -&gt; oauth2.jwt(jwt -&gt; jwt
+                        .decoder(jwtDecoder)
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter)))
+                .build();
+    }
+}</code></pre>
+      <div class="note">
+        <span class="tag">Every clause here is doing real work — none of it is boilerplate</span>
+        <p><code>csrf().disable()</code> is correct specifically <em>because</em> this is a stateless bearer-token API with no browser-managed session cookie — CSRF is fundamentally a session-cookie attack, and there's no ambient credential here for it to hijack. <code>sessionCreationPolicy(STATELESS)</code> tells Spring Security never to create an <code>HttpSession</code> — every request carries everything needed to authenticate it (the token), so there's nothing to remember between requests. <code>setAuthoritiesClaimName("roles")</code> + <code>setAuthorityPrefix("ROLE_")</code> is the line that makes <code>hasRole("CUSTOMER")</code> below actually match the <code>"roles": ["CUSTOMER"]</code> claim from the token — Spring Security's convention is that <code>hasRole("X")</code> checks for an authority literally named <code>ROLE_X</code>, so without this converter every role check would silently fail closed.</p>
+      </div>
+
+      <div class="note warn">
+        <span class="tag">Why <code>oauth2ResourceServer()</code>, not a hand-rolled <code>OncePerRequestFilter</code></span>
+        <p>An easy, tempting first instinct is a custom servlet filter: read the header, verify the signature yourself, set the <code>SecurityContext</code>. It's not much code — and it's also exactly the kind of code that's easy to get subtly wrong. A hand-rolled filter that hits an unexpected error while parsing a malformed token can end up silently leaving the security context empty rather than actively rejecting the request — which then falls through to whatever Spring's default unauthenticated handling does, which may not be the clean <code>401</code> you intended. Spring's own resource server support routes an invalid or expired token through <code>BearerTokenAuthenticationEntryPoint</code>, which reliably produces a real <code>401</code> with a proper <code>WWW-Authenticate</code> header — battle-tested code path, not a home-grown one with an edge case nobody's found yet.</p>
+      </div>
+
+      <div class="note crit">
+        <span class="tag">The tradeoff this platform makes, on purpose — worth knowing, not necessarily copying</span>
+        <p><code>NimbusJwtDecoder.withSecretKey(key).macAlgorithm(HS512)</code> is <strong>symmetric</strong> signing — the exact same secret both <em>signs</em> a token (in <code>user-service</code>) and <em>verifies</em> one (in every other service, from the identical <code>security.jwt.secret</code> config value). That means any of these six services, if it wanted to, could forge a token claiming to be anyone — they all hold signing-capable material, not just verification-capable material. A production system with real multi-team trust boundaries more commonly uses <strong>asymmetric</strong> signing (RS256/ES256): the authorization server holds a private key and signs; every resource server only ever needs the corresponding <em>public</em> key (often published at a JWKS endpoint and cached), which can verify a signature but can't produce one. A compromised resource server under that model can't mint tokens even if fully breached. HS512 here is a reasonable simplification for a platform where every service is first-party and deploys from the same trust boundary — it would not be the right choice the moment a genuinely untrusted service needed to verify tokens without also being trusted to issue them.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <pre><code># No credentials at all -> 401, not 403 -- there's a real difference (see below)
+curl -i localhost:8084/api/v1/orders/00000000-0000-0000-0000-000000000000
+# 401 Unauthorized
+
+# Log in, get a real token
+TOKEN=$(curl -s -X POST localhost:8081/api/v1/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}' | jq -r .accessToken)
+
+# Decode it yourself -- it's just base64, no secret required to READ it, only to verify it
+echo $TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq .
+# {"sub":"...", "email":"admin@example.com", "roles":["ADMIN"], "iat":..., "exp":...}
+
+# A valid token, but the ADMIN role doesn't satisfy hasRole("CUSTOMER") on POST /orders
+curl -i -X POST localhost:8084/api/v1/orders -H "Authorization: Bearer $TOKEN" -d '{...}'
+# 403 Forbidden
+
+# Same token, a GET any authenticated role can reach
+curl -i localhost:8084/api/v1/orders/00000000-0000-0000-0000-000000000000 -H "Authorization: Bearer $TOKEN"
+# 404 Not Found -- past the security check entirely, now it's just "no such order"</code></pre>
+        <p><strong>401 vs 403 is the whole story of what just got built</strong>, made concrete: <code>401 Unauthorized</code> means "I don't know who you are" (no token, or a token that fails verification) — that's <code>oauth2ResourceServer()</code> talking. <code>403 Forbidden</code> means "I know exactly who you are, and the answer is still no" — that's <code>authorizeHttpRequests()</code> talking, one layer further in, using the <code>roles</code> claim the <code>JwtAuthenticationConverter</code> extracted. Two different failures, two different Spring Security components, and a client can act correctly on the difference (re-authenticate vs. don't bother retrying, this user will never be allowed). The next phase puts a gateway in front of all of this — and repeats this exact same validation there too, deliberately redundantly, since <code>order-service</code> validating its own tokens must never become optional just because something upstream already checked once.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 5 ============ -->
+    <section class="part" id="phase5">
+      <div class="part-label"><span class="num">05</span></div>
+      <h2>Gateway In Front</h2>
+      <p class="phase-goal">Goal: a client talks to exactly one address. Every request gets a correlation ID, a fast-fail JWT check, rate limiting, and a real answer even when a downstream service is down — before it ever reaches order-service, inventory-service, or user-service.</p>
+
+      <h3>First: why this one service is built completely differently</h3>
+      <p>Every service so far is a normal Spring MVC app on Tomcat — one thread per request, blocking I/O, the model you've been using since phase 1. A gateway's entire job is different in kind: it holds open a large number of client connections and, for each one, opens <em>another</em> connection to a backend service and shuffles bytes between them. Doing that with one OS thread per in-flight request scales far worse than it does for order-service, where each request does a bounded amount of real work and returns. Spring Cloud Gateway is built on <strong>WebFlux</strong> and Netty specifically for this — non-blocking I/O, a small fixed pool of event-loop threads handling many concurrent connections instead of one thread parked per connection.</p>
+      <div class="note warn">
+        <span class="tag">This changes the code you write, not just a config flag</span>
+        <p>Every filter from here on returns <code>Mono&lt;Void&gt;</code>, not <code>void</code> — there is no "handle the request, then return" the way a <code>OncePerRequestFilter</code> works. A <code>Mono</code> is a promise of a value (or completion) that hasn't necessarily happened yet; you compose behavior by chaining onto it (<code>.then(...)</code>, <code>.map(...)</code>), you never block waiting for it. Blocking inside a WebFlux filter — a plain JDBC call, a synchronous HTTP client, a <code>Thread.sleep</code> — stalls one of the small number of event-loop threads and can degrade every other in-flight request sharing it, not just the one that blocked. None of the gateway's own filters below touch a database or block on I/O; that constraint is why.</p>
+      </div>
+
+      <div class="step"><span class="step-num">1</span><strong>Dependencies</strong> — the reactive gateway starter, a reactive Redis client for rate limiting, and <code>jjwt</code> again (the gateway verifies signatures itself, for reasons the next step explains):</div>
+      <p class="filename">gateway-service/build.gradle</p>
+      <pre><code>implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webflux'
+implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
+implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+
+implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'</code></pre>
+
+      <div class="step"><span class="step-num">2</span><strong>Routes</strong> — path predicates decide which service a request goes to; <code>RewritePath</code> translates the public-facing URL into each service's actual API path:</div>
+      <p class="filename">gateway-service/src/main/resources/application.yml (excerpt)</p>
+      <pre><code>spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: user-service-auth
+              uri: http://localhost:8081
+              predicates: [ "Path=/users/auth/**" ]
+              filters:
+                - "RewritePath=/users/auth/(?&lt;segment&gt;.*), /api/v1/auth/$\\{segment}"
+
+            - id: order-service
+              uri: http://localhost:8084
+              predicates: [ "Path=/orders,/orders/**" ]
+              filters:
+                - "RewritePath=/orders(?&lt;segment&gt;/?.*), /api/v1/orders$\\{segment}"
+
+            - id: inventory-service
+              uri: http://localhost:8083
+              predicates: [ "Path=/inventory,/inventory/**" ]
+              filters:
+                - "RewritePath=/inventory(?&lt;segment&gt;/?.*), /api/v1/inventory$\\{segment}"
+
+server:
+  port: 8080</code></pre>
+      <div class="note">
+        <span class="tag">Why the public path and the internal path are different at all</span>
+        <p>A client calls <code>POST /orders</code>; order-service actually exposes <code>POST /api/v1/orders</code>. The gateway is the seam where "how clients address this system" and "how each service versions and structures its own API" get to evolve independently — order-service could move to <code>/api/v2/orders</code> tomorrow and, as long as the gateway's rewrite rule is the only thing that changes, no client-facing URL moves at all.</p>
+      </div>
+
+      <div class="step"><span class="step-num">3</span><strong>Correlation ID — first filter in the chain, deliberately:</strong></div>
+      <p class="filename">gateway-service/src/main/java/com/ecommerce/gateway/filter/CorrelationIdGlobalFilter.java</p>
+      <pre><code>@Component
+public class CorrelationIdGlobalFilter implements GlobalFilter, Ordered {
+
+    @Override
+    public Mono&lt;Void&gt; filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        String correlationId = exchange.getRequest().getHeaders().getFirst(CorrelationIdConstants.HEADER);
+        if (correlationId == null || correlationId.isBlank()) {
+            correlationId = UUID.randomUUID().toString();
+        }
+        ServerHttpRequest request = exchange.getRequest().mutate()
+                .header(CorrelationIdConstants.HEADER, correlationId)
+                .build();
+        exchange.getResponse().getHeaders().add(CorrelationIdConstants.HEADER, correlationId);
+        return chain.filter(exchange.mutate().request(request).build());
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
+    }
+}</code></pre>
+      <div class="note why">
+        <span class="tag">Why this runs before literally everything else</span>
+        <p><code>GlobalFilter</code>s run in an order every request passes through, controlled by <code>getOrder()</code> — lower runs first. This one claims <code>HIGHEST_PRECEDENCE</code> so every filter after it, and every downstream service, can assume a correlation ID already exists rather than each having to handle "what if nobody set one yet." Reusing an incoming ID rather than always minting a fresh one matters too: if a client (or a test harness) already generated one, this preserves it instead of quietly discarding it and breaking that caller's own tracing.</p>
+      </div>
+
+      <div class="step"><span class="step-num">4</span><strong>A fast-fail JWT check</strong> — reject obviously-invalid tokens before wasting a network hop to a backend service that would just reject them anyway:</div>
+      <p class="filename">gateway-service/src/main/java/com/ecommerce/gateway/filter/JwtAuthenticationGlobalFilter.java (excerpt)</p>
+      <pre><code>@Component
+public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
+
+    private static final Set&lt;String&gt; PUBLIC_PREFIXES = Set.of(
+            "/users/auth", "/actuator/health");
+
+    private final SecretKey signingKey;
+
+    public JwtAuthenticationGlobalFilter(@Value("${security.jwt.secret}") String secret) {
+        this.signingKey = hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public Mono&lt;Void&gt; filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        String path = exchange.getRequest().getPath().value();
+        if (PUBLIC_PREFIXES.stream().anyMatch(path::startsWith)) {
+            return chain.filter(exchange);
+        }
+
+        String header = exchange.getRequest().getHeaders().getFirst("Authorization");
+        if (header == null || !header.startsWith("Bearer ")) {
+            return unauthorized(exchange);
+        }
+
+        try {
+            Claims claims = Jwts.parser().verifyWith(signingKey).build()
+                    .parseSignedClaims(header.substring(7)).getPayload();
+
+            @SuppressWarnings("unchecked")
+            List&lt;String&gt; roles = claims.get("roles", List.class);
+
+            ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                    .header("X-User-Id", claims.getSubject())
+                    .header("X-User-Roles", String.join(",", roles))
+                    .build();
+            return chain.filter(exchange.mutate().request(mutatedRequest).build());
+        } catch (JwtException e) {
+            return unauthorized(exchange);
+        }
+    }
+
+    private Mono&lt;Void&gt; unauthorized(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE + 10;
+    }
+}</code></pre>
+      <div class="note crit">
+        <span class="tag">Why a hand-rolled check here, when phase 4 specifically warned against that</span>
+        <p>Two real reasons, not a contradiction of phase 4's advice. First, mechanically: Spring Security's <code>oauth2ResourceServer()</code> DSL used in phase 4 is built for the Servlet stack this gateway deliberately isn't on — a reactive equivalent exists, but pulling in the whole reactive Spring Security filter chain for what's fundamentally a cheap pre-check is more machinery than the job needs. Second, and more important: <strong>this check is not the security boundary</strong> — re-read the class comment. Every downstream service still independently validates with the real <code>oauth2ResourceServer()</code> setup from phase 4, using the exact same secret. If this filter had a bug, or was skipped entirely (someone calls order-service directly, bypassing the gateway on purpose or by mistake), <em>nothing about the platform's actual security depends on this filter having run</em> — it's purely an optimization, rejecting garbage before it costs a network hop. That's the condition under which a lighter-weight, hand-rolled check is fine: when getting it wrong fails safe, because something else authoritative checks again regardless.</p>
+      </div>
+      <div class="note">
+        <span class="tag"><code>X-User-Id</code> / <code>X-User-Roles</code> — convenience, not trust</span>
+        <p>These headers exist so a downstream service <em>could</em> read "who's calling" without re-parsing the JWT itself — but note that every service's own <code>SecurityConfig</code> (phase 4) never actually reads them; it re-validates the original <code>Authorization</code> header independently every time. That's deliberate: an <code>X-User-Id</code> header is just a string another actor could set to literally anything if they could reach a service directly — it carries no cryptographic proof the way the JWT's signature does. Never let a downstream trust decision hang on a header the gateway merely <em>added</em>, only on a token it independently <em>verified</em>.</p>
+      </div>
+
+      <div class="step"><span class="step-num">5</span><strong>Log every request exactly once</strong> — last in the chain, so <code>doFinally</code> sees the real final status code after every other filter and the proxied call have both completed:</div>
+      <p class="filename">gateway-service/src/main/java/com/ecommerce/gateway/filter/RequestLoggingGlobalFilter.java</p>
+      <pre><code>@Component
+public class RequestLoggingGlobalFilter implements GlobalFilter, Ordered {
+
+    private static final Logger log = LoggerFactory.getLogger(RequestLoggingGlobalFilter.class);
+
+    @Override
+    public Mono&lt;Void&gt; filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        long start = System.currentTimeMillis();
+        String correlationId = exchange.getRequest().getHeaders().getFirst(CorrelationIdConstants.HEADER);
+        String path = exchange.getRequest().getPath().value();
+
+        return chain.filter(exchange).doFinally(signal -&gt; {
+            long durationMs = System.currentTimeMillis() - start;
+            int status = exchange.getResponse().getStatusCode() != null
+                    ? exchange.getResponse().getStatusCode().value() : 0;
+            log.info("correlationId={} method={} path={} status={} durationMs={}",
+                    correlationId, exchange.getRequest().getMethod(), path, status, durationMs);
+        });
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.LOWEST_PRECEDENCE;
+    }
+}</code></pre>
+      <p>The chain so far, in the order it actually runs: <strong>correlation ID</strong> (<code>HIGHEST_PRECEDENCE</code>) → <strong>JWT check</strong> (<code>HIGHEST_PRECEDENCE + 10</code>) → route match &amp; proxy to the backend → <strong>request logging</strong> (<code>LOWEST_PRECEDENCE</code>, runs last on the way back out). Every filter in between — rate limiting, the circuit breaker, both added next — slots in between the JWT check and the proxied call, in whatever order each route declares them.</p>
+
+      <div class="step"><span class="step-num">6</span><strong>Rate limiting</strong> — a Redis-backed token bucket per route, keyed by whoever's actually asking:</div>
+      <p class="filename">gateway-service/src/main/java/com/ecommerce/gateway/config/RateLimiterConfig.java</p>
+      <pre><code>@Configuration
+public class RateLimiterConfig {
+
+    @Bean
+    public KeyResolver userKeyResolver() {
+        return exchange -&gt; Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("X-User-Id"))
+                .defaultIfEmpty("anonymous");
+    }
+}</code></pre>
+      <p class="filename">gateway-service/src/main/resources/application.yml (excerpt)</p>
+      <pre><code>            - id: order-service
+              uri: http://localhost:8084
+              predicates: [ "Path=/orders,/orders/**" ]
+              filters:
+                - "RewritePath=/orders(?&lt;segment&gt;/?.*), /api/v1/orders$\\{segment}"
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 50
+                    redis-rate-limiter.burstCapacity: 100
+                    key-resolver: "#{@userKeyResolver}"</code></pre>
+      <div class="note">
+        <span class="tag">Why Redis, not an in-memory counter</span>
+        <p>An in-memory rate limiter only knows about requests <em>that instance</em> handled — the moment there's more than one gateway replica (which there will be, by phase 9), each replica would enforce its own independent limit, and the real effective limit becomes (configured limit) × (replica count), silently. Redis gives every replica a shared, consistent view of each key's remaining budget, so the limit means what it says regardless of how many gateway instances are running. <code>replenishRate: 50, burstCapacity: 100</code> is a token-bucket: tokens refill at 50/sec continuously, up to a cap of 100 banked — smooth sustained traffic passes freely, and a legitimate short burst (a user's page loading five resources at once) doesn't get needlessly throttled just for arriving together.</p>
+      </div>
+      <div class="note warn">
+        <span class="tag">Left out here, deliberately</span>
+        <p>The real platform also has a second, much stricter, IP-keyed rate limiter specifically on the login route — because <code>userKeyResolver</code> falls back to a shared <code>"anonymous"</code> bucket for anyone without an <code>X-User-Id</code> yet, which includes every login attempt. One shared bucket for all unauthenticated traffic is a real brute-force gap, not a hypothetical one. That fix, and the real ambiguous-<code>KeyResolver</code>-bean startup crash it caused the first time it was added, is phase 7 material — a genuine bug with a genuine fix, not something to pre-empt here before the gap has been felt.</p>
+      </div>
+
+      <div class="step"><span class="step-num">7</span><strong>A circuit breaker at the gateway, and a fallback that answers instead of hanging:</strong></div>
+      <p class="filename">gateway-service/src/main/resources/application.yml (excerpt)</p>
+      <pre><code>            - id: order-service
+              # ...same route as above...
+              filters:
+                - name: CircuitBreaker
+                  args: { name: orderServiceCB, fallbackUri: "forward:/fallback/order-service" }
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      orderServiceCB:
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s</code></pre>
+      <p class="filename">gateway-service/src/main/java/com/ecommerce/gateway/controller/FallbackController.java</p>
+      <pre><code>@RestController
+public class FallbackController {
+
+    @GetMapping("/fallback/{service}")
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; fallback(@PathVariable String service) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                "title", "Service Temporarily Unavailable",
+                "detail", service + " is not responding; circuit breaker is open",
+                "status", 503));
+    }
+}</code></pre>
+      <div class="note">
+        <span class="tag">The same idea as phase 3's Feign circuit breaker, one layer up</span>
+        <p>Phase 3 protected order-service from a <em>slow or down inventory-service</em>. This protects every client of the gateway from a slow or down <em>order-service itself</em> — same failure mode (a dependency stops answering, threads/connections pile up waiting), same fix (stop trying once failures cross a threshold, fail fast instead, try again after a cooldown), applied at the next layer out. This is a pattern that recurs at every boundary in a distributed system, not a one-off.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <pre><code># Through the gateway now, not order-service's own port -- one address for everything
+TOKEN=$(curl -s -X POST localhost:8080/users/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}' | jq -r .accessToken)
+
+curl -i localhost:8080/orders/00000000-0000-0000-0000-000000000000 -H "Authorization: Bearer $TOKEN"
+# 404 Not Found, with an X-Correlation-Id response header you never set yourself
+
+# Hammer the same route past its configured burst
+for i in $(seq 1 120); do curl -s -o /dev/null -w "%{http_code} " localhost:8080/orders -H "Authorization: Bearer $TOKEN"; done
+# a run of 200s, then 429s once the bucket empties
+
+# Stop order-service, then call it through the gateway again
+curl -i localhost:8080/orders/00000000-0000-0000-0000-000000000000 -H "Authorization: Bearer $TOKEN"
+# 503 Service Temporarily Unavailable -- a real, immediate answer, not a client sitting on a hung connection</code></pre>
+        <p>The platform now has one public entry point, and everything a client experiences at the edge — correlation IDs, auth rejection, rate limits, a graceful answer when something's down — is enforced consistently across every route, in one place, without order-service or inventory-service knowing or caring that any of it happened. What's still missing: order-service and payment-service (not built yet) need to tell notification-service "a payment completed" — and a synchronous call, the only tool built so far, is the wrong one for that. Phase 6 is why.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 6 ============ -->
+    <section class="part" id="phase6">
+      <div class="part-label"><span class="num">06</span></div>
+      <h2>Kafka &amp; the Outbox</h2>
+      <p class="phase-goal">Goal: <code>payment-service</code> and <code>notification-service</code> exist. Authorizing a payment publishes an event; notification-service consumes it and sends a confirmation — without either service calling the other directly, and without a crash mid-request silently losing the event.</p>
+
+      <div class="step"><span class="step-num">1</span><strong>Why this isn't another Feign client.</strong> Phase 3 added a synchronous call — order-service asks inventory-service a question and waits for the answer, because it genuinely needs it before it can respond to its own caller. <code>order-service</code>&#8594;<code>payment-service</code> is the same shape (not shown again here; it's a second <code>FeignClient</code> built exactly like <code>InventoryClient</code>, see the finished <code>PaymentClient</code> if you want to check the pattern held). But payment-service telling notification-service "send a confirmation email" is different: the customer's HTTP response doesn't need to wait for an email to be queued, and payment-service shouldn't fail the payment just because the email pipeline is briefly down. The test that decides sync vs. async: <em>does the caller need the answer before it can respond to its own caller?</em> Here, no — so this is Kafka's job, not Feign's.</div>
+
+      <div class="note">
+        <span class="tag">The Kafka vocabulary you need for this phase</span>
+        <p>A <strong>topic</strong> (<code>payment-events</code> here) is a named, ordered log — producers append, consumers read. A topic is split into <strong>partitions</strong> for parallelism; records with the same key (an order ID, below) always land on the same partition, so per-order ordering is preserved even with many partitions. A <strong>consumer group</strong> (<code>notification-service</code>, the <code>groupId</code> below) is a set of consumer instances sharing the work of one topic — Kafka tracks each group's read position (its <em>offset</em>) independently, so notification-service and any future consumer of the same topic each get their own complete view of every record.</p>
+      </div>
+
+      <div class="step"><span class="step-num">2</span><strong>Start Kafka</strong> — the same single-broker KRaft setup <code>docker-compose.yaml</code> uses, no Zookeeper:</div>
+      <pre><code>docker run -d --name kafka -p 9092:9092 apache/kafka:3.8.0 \
+  -e KAFKA_NODE_ID=1 \
+  -e KAFKA_PROCESS_ROLES=broker,controller \
+  -e KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093 \
+  -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
+  -e KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER \
+  -e KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093 \
+  -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT \
+  -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1</code></pre>
+
+      <div class="step"><span class="step-num">3</span><strong>Build payment-service</strong> — same shape as order-service (phases 1-2) plus security (phase 4, identical <code>SecurityConfig</code>, not repeated here) plus Kafka:</div>
+      <p class="filename">payment-service/build.gradle (excerpt)</p>
+      <pre><code>dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+}</code></pre>
+      <p class="filename">payment-service/src/main/resources/db/migration/V1__init_payments.sql (excerpt)</p>
+      <pre><code>CREATE TABLE payments (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id     UUID NOT NULL,
+    customer_id  UUID NOT NULL,
+    status       VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    amount       NUMERIC(12,2) NOT NULL,
+    method       VARCHAR(30) NOT NULL DEFAULT 'CARD',
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    version      BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT uq_payments_order UNIQUE (order_id),
+    CONSTRAINT ck_payments_status CHECK (status IN ('PENDING','AUTHORIZED','CAPTURED','FAILED','REFUNDED'))
+);</code></pre>
+      <div class="note warn">
+        <span class="tag">Left out here, deliberately</span>
+        <p>No <code>idempotency_key</code> column yet — retry-safe payment authorization is a phase 7 concern (a network blip making a client retry <code>POST /payments/authorize</code> shouldn't authorize the same payment twice). This phase's version can be safely re-run against a clean database as many times as you like; it just isn't safe against an actual duplicate client request yet.</p>
+      </div>
+
+      <div class="step"><span class="step-num">4</span><strong>The naive version first</strong> — publish directly inside the same method that saves the payment, because it looks like the obviously correct place to do it:</div>
+      <p class="filename">payment-service/src/main/java/com/ecommerce/payment/service/impl/PaymentServiceImpl.java (first pass — not the real file)</p>
+      <pre><code>@Transactional
+public PaymentAuthorizationResponse authorize(AuthorizePaymentRequest request) {
+    Payment payment = Payment.create(request.orderId(), request.customerId(), request.amount());
+    payment.setStatus(PaymentStatus.AUTHORIZED);
+    Payment saved = paymentRepository.save(payment);
+
+    var event = new PaymentCompletedEvent(saved.getId(), saved.getOrderId(), saved.getAmount(), Instant.now());
+    kafkaTemplate.send("payment-events", saved.getOrderId().toString(), objectMapper.writeValueAsString(event));
+
+    return toResponse(saved);
+}</code></pre>
+      <div class="note crit">
+        <span class="tag">Why this is a real bug, not a style nitpick</span>
+        <p>Postgres and Kafka are two separate systems; <code>@Transactional</code> only reaches the first one. Two concrete ways this drops an event on the floor: <strong>(1)</strong> the pod is killed — <code>OOMKilled</code>, a node eviction, a rolling deploy — in the gap between <code>paymentRepository.save()</code> committing and <code>kafkaTemplate.send()</code> completing. The payment is <code>AUTHORIZED</code> in the database; the event never left the JVM's memory. <strong>(2)</strong> no crash at all: <code>KafkaTemplate.send()</code> returns a <code>CompletableFuture</code> — nothing here calls <code>.get()</code> or attaches a callback, so a broker-side failure (a leader election mid-flight, an under-replicated partition) fails that future silently while the HTTP response to the client still says success. Either way: the customer was charged, the database says so, and notification-service never finds out. No exception, no error log, no retry — it just vanishes.</p>
+      </div>
+
+      <div class="step"><span class="step-num">5</span><strong>The fix: don't write to two systems at once — write to one, and let a separate step relay to the other.</strong> Add an outbox table to payment-service's own database. Writing to it is just another INSERT in the same transaction as the payment, so Postgres's own atomicity guarantee — both rows commit, or neither does — now covers the whole thing:</div>
+      <p class="filename">payment-service/src/main/resources/db/migration/V1__init_payments.sql (addition)</p>
+      <pre><code>CREATE TABLE outbox_events (
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    aggregate_type VARCHAR(50) NOT NULL,
+    aggregate_id   UUID NOT NULL,
+    event_type     VARCHAR(50) NOT NULL,
+    topic          VARCHAR(100) NOT NULL,
+    payload        JSONB NOT NULL,
+    correlation_id VARCHAR(255),
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    published_at   TIMESTAMPTZ
+);
+CREATE INDEX idx_outbox_events_unpublished ON outbox_events (created_at) WHERE published_at IS NULL;</code></pre>
+      <p class="filename">payment-service/src/main/java/com/ecommerce/payment/entity/OutboxEvent.java</p>
+      <pre><code>@Entity
+@Table(name = "outbox_events")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class OutboxEvent {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @Column(name = "aggregate_type", nullable = false, length = 50)
+    private String aggregateType;
+
+    @Column(name = "aggregate_id", nullable = false)
+    private UUID aggregateId;
+
+    @Column(name = "event_type", nullable = false, length = 50)
+    private String eventType;
+
+    @Column(nullable = false, length = 100)
+    private String topic;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private String payload;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "published_at")
+    private Instant publishedAt;
+
+    // Captured from MDC at write time, not read again from MDC at publish time — the publisher
+    // below runs on a scheduler thread with no relation to the HTTP request that created this
+    // row, so persisting it here is the only way to carry it across that gap.
+    @Column(name = "correlation_id")
+    private String correlationId;
+
+    public static OutboxEvent of(String aggregateType, UUID aggregateId, String eventType, String topic,
+                                  String payload, String correlationId) {
+        OutboxEvent event = new OutboxEvent();
+        event.aggregateType = aggregateType;
+        event.aggregateId = aggregateId;
+        event.eventType = eventType;
+        event.topic = topic;
+        event.payload = payload;
+        event.correlationId = correlationId;
+        return event;
+    }
+
+    public void markPublished() {
+        this.publishedAt = Instant.now();
+    }
+
+    @PrePersist
+    void onCreate() {
+        createdAt = Instant.now();
+    }
+}</code></pre>
+      <p class="filename">payment-service/src/main/java/com/ecommerce/payment/event/PaymentEventProducer.java</p>
+      <pre><code>@Component
+@RequiredArgsConstructor
+public class PaymentEventProducer {
+
+    private static final String TOPIC = "payment-events";
+
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
+
+    public void publishCompleted(Payment payment) {
+        var event = new PaymentCompletedEvent(payment.getId(), payment.getOrderId(), payment.getAmount(), Instant.now());
+        outboxEventRepository.save(OutboxEvent.of("Payment", payment.getOrderId(), "PaymentCompletedEvent", TOPIC,
+                objectMapper.writeValueAsString(event), MDC.get(CorrelationIdConstants.MDC_KEY)));
+    }
+}</code></pre>
+      <div class="step"><span class="step-num">6</span><strong>Wire it into the same transactional method</strong> — the only change from the naive version is what gets called; the transaction boundary doesn't move:</div>
+      <p class="filename">payment-service/src/main/java/com/ecommerce/payment/service/impl/PaymentServiceImpl.java (excerpt)</p>
+      <pre><code>@Transactional
+public PaymentAuthorizationResponse authorize(AuthorizePaymentRequest request) {
+    Payment payment = Payment.create(request.orderId(), request.customerId(), request.amount());
+    payment.setStatus(PaymentStatus.AUTHORIZED);
+    Payment saved = paymentRepository.save(payment);
+
+    paymentEventProducer.publishCompleted(saved);   // writes a row, in this same transaction — no Kafka call here
+
+    return toResponse(saved);
+}</code></pre>
+      <div class="step"><span class="step-num">7</span><strong>Something still has to talk to Kafka</strong> — a scheduled poller, completely decoupled from the HTTP request that created the row:</div>
+      <p class="filename">payment-service/src/main/java/com/ecommerce/payment/event/OutboxPublisher.java</p>
+      <pre><code>@Component
+@RequiredArgsConstructor
+public class OutboxPublisher {
+
+    private static final Logger log = LoggerFactory.getLogger(OutboxPublisher.class);
+
+    private final OutboxEventRepository outboxEventRepository;
+    private final KafkaTemplate&lt;String, String&gt; outboxKafkaTemplate;
+
+    @Scheduled(fixedDelay = 500)
+    public void publishPending() {
+        List&lt;OutboxEvent&gt; pending = outboxEventRepository.findTop100ByPublishedAtIsNullOrderByCreatedAtAsc();
+        for (OutboxEvent event : pending) {
+            try {
+                var record = new ProducerRecord&lt;&gt;(event.getTopic(), null, event.getAggregateId().toString(), event.getPayload());
+                if (event.getCorrelationId() != null) {
+                    record.headers().add(CorrelationIdConstants.HEADER, event.getCorrelationId().getBytes(StandardCharsets.UTF_8));
+                }
+                outboxKafkaTemplate.send(record).get();
+                event.markPublished();
+                outboxEventRepository.save(event);
+            } catch (Exception e) {
+                log.error("Failed to publish outbox event {} — will retry next poll", event.getId(), e);
+            }
+        }
+    }
+}</code></pre>
+      <div class="note why">
+        <span class="tag">Why polling beats the naive version, concretely</span>
+        <p>The dual-write problem was fundamentally about writing to <em>two</em> systems as if they shared a transaction, when they don't. This reduces it to one: the HTTP request only ever writes to Postgres, and Postgres's own transaction guarantee is real and already trusted everywhere else in this codebase. The publisher is a <em>separate</em>, safely-retriable operation — if it crashes mid-batch, unpublished rows are still unpublished, and the next poll 500ms later just tries them again. The one new failure mode this introduces — the same row getting published twice, if <code>.get()</code> succeeds but the process dies before <code>event.markPublished()</code> commits — is a strictly easier problem than the one it replaced: <em>at-least-once</em> delivery, which a consumer can defend against by being idempotent. A silently-lost event has no such defense. Consumer idempotency is exactly what phase 7 adds.</p>
+      </div>
+      <div class="note">
+        <span class="tag">Why <code>outboxKafkaTemplate.send(record).get()</code>, not fire-and-forget</span>
+        <p>This is the opposite tradeoff from step 4's bug: here, blocking on <code>.get()</code> inside a background scheduled method is exactly the right call, because there's no HTTP caller waiting on this thread — the only cost of blocking is this poller running slightly less often, and the payoff is knowing definitively whether the send succeeded before deciding to mark the row published.</p>
+      </div>
+
+      <div class="step"><span class="step-num">8</span><strong>Build notification-service</strong> — same shape again, this time as a <em>consumer</em>. Schema first:</div>
+      <p class="filename">notification-service/src/main/resources/db/migration/V1__init_notifications.sql (excerpt)</p>
+      <pre><code>CREATE TABLE notification_events (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_type  VARCHAR(50) NOT NULL,
+    source_id   UUID NOT NULL,
+    payload     JSONB NOT NULL,
+    status      VARCHAR(20) NOT NULL DEFAULT 'RECEIVED',
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT ck_notification_events_status CHECK (status IN ('RECEIVED','PROCESSED','FAILED'))
+);
+
+CREATE TABLE email_logs (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id     UUID REFERENCES notification_events(id) ON DELETE SET NULL,
+    recipient    VARCHAR(255) NOT NULL,
+    subject      VARCHAR(255) NOT NULL,
+    status       VARCHAR(20) NOT NULL DEFAULT 'QUEUED',
+    sent_at      TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);</code></pre>
+      <div class="note warn">
+        <span class="tag">Left out here, deliberately</span>
+        <p>No <code>UNIQUE (event_type, source_id)</code> constraint on <code>notification_events</code> yet, and the consumer below doesn't check for one. Kafka only promises <em>at-least-once</em> delivery — a rebalance or consumer restart can redeliver a record this service already processed, and right now nothing stops it from sending the same email twice. That dedup check is one of phase 7's fixes, tied directly to the "easier problem" the previous note named.</p>
+      </div>
+
+      <div class="step"><span class="step-num">9</span><strong>The consumer side of Kafka needs its own configuration</strong> — a deserializer, and a listener container factory to register the <code>@KafkaListener</code> method against:</div>
+      <p class="filename">notification-service/src/main/java/com/ecommerce/notification/config/KafkaConsumerConfig.java (first pass — no error handling yet)</p>
+      <pre><code>@Configuration
+@EnableKafka
+public class KafkaConsumerConfig {
+
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
+    @Bean
+    public ConsumerFactory&lt;String, PaymentCompletedEvent&gt; paymentEventConsumerFactory() {
+        Map&lt;String, Object&gt; props = Map.of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                ConsumerConfig.GROUP_ID_CONFIG, "notification-service",
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class,
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+                JacksonJsonDeserializer.VALUE_DEFAULT_TYPE, PaymentCompletedEvent.class.getName(),
+                JacksonJsonDeserializer.TRUSTED_PACKAGES, "com.ecommerce.common.event");
+        return new DefaultKafkaConsumerFactory&lt;&gt;(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory&lt;String, PaymentCompletedEvent&gt; paymentEventListenerFactory(
+            ConsumerFactory&lt;String, PaymentCompletedEvent&gt; paymentEventConsumerFactory) {
+        var factory = new ConcurrentKafkaListenerContainerFactory&lt;String, PaymentCompletedEvent&gt;();
+        factory.setConsumerFactory(paymentEventConsumerFactory);
+        return factory;
+    }
+}</code></pre>
+      <p class="filename">notification-service/src/main/java/com/ecommerce/notification/event/PaymentEventConsumer.java (first pass — no dedup yet)</p>
+      <pre><code>@Component
+@RequiredArgsConstructor
+public class PaymentEventConsumer {
+
+    private final EmailService emailService;
+    private final NotificationEventRepository notificationEventRepository;
+    private final ObjectMapper objectMapper;
+
+    @KafkaListener(topics = "payment-events", groupId = "notification-service",
+            containerFactory = "paymentEventListenerFactory")
+    @Transactional
+    public void onPaymentCompleted(PaymentCompletedEvent event) {
+        NotificationEvent record = NotificationEvent.receive(
+                "payment.completed", event.orderId(), objectMapper.writeValueAsString(event));
+        notificationEventRepository.save(record);
+        emailService.sendPaymentConfirmation(record.getId(), event.orderId(), event.amount());
+    }
+}</code></pre>
+      <p class="filename">notification-service/src/main/java/com/ecommerce/notification/service/impl/EmailServiceImpl.java (excerpt)</p>
+      <pre><code>private void send(UUID eventId, String recipient, String subject) {
+    EmailLog emailLog = EmailLog.queue(eventId, recipient, subject);
+    try {
+        // Real SMTP/provider dispatch happens here (spring-boot-starter-mail JavaMailSender).
+        log.info("Sending email to {}: {}", recipient, subject);
+        emailLog.markSent();
+    } catch (Exception e) {
+        log.error("Failed to send email to {}", recipient, e);
+        emailLog.markFailed();
+    }
+    emailLogRepository.save(emailLog);
+}</code></pre>
+      <div class="note">
+        <span class="tag">Why this reference implementation logs instead of sending real mail</span>
+        <p>The point of this phase is proving the Kafka pipeline end to end — payment authorized, event produced, event consumed, side effect happened — without a real SMTP account being a prerequisite for following along. <code>spring-boot-starter-mail</code> is already a dependency; swapping the <code>log.info</code> line for a real <code>JavaMailSender.send()</code> call is the only change a production deployment needs here.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <pre><code>TOKEN=$(curl -s -X POST localhost:8080/users/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}' | jq -r .accessToken)
+
+# payment-service's own port -- same local-debugging pattern as every earlier phase.
+# The same JWT from phase 4 works here: payment-service validates it independently.
+curl -s -X POST localhost:8085/payments/authorize -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"orderId":"11111111-1111-1111-1111-111111111111","customerId":"22222222-2222-2222-2222-222222222222","amount":49.99}'
+# {"authorized":true,...}
+
+# The outbox row exists immediately, published within ~500ms
+docker exec -it payments-db psql -U payments_user -d payments_db \
+  -c "SELECT event_type, published_at FROM outbox_events ORDER BY created_at DESC LIMIT 1;"
+#     event_type      |         published_at
+# ----------------------+-------------------------------
+#  PaymentCompletedEvent | 2026-07-23 09:14:22.118+00
+
+# notification-service's log shows the consumer picked it up independently -- no
+# call from payment-service told it to; it found out from Kafka.
+docker logs notification-service --tail 5
+# Sending email to 11111111-1111-1111-1111-111111111111@customers.company.com: Payment received for order ...</code></pre>
+        <p>Kill notification-service <em>before</em> authorizing a payment, wait past the outbox publisher's 500ms cycle, then start notification-service back up: the email still goes out, because it was reading a durable Kafka log, not waiting on a live connection to payment-service. That's the payoff of async messaging that a synchronous Feign call (phase 3) can't give you — full decoupling in <em>time</em>, not just in process. What's still open: nothing yet stops this consumer from processing the same event twice if Kafka redelivers it — a rebalance, a consumer restart, the outbox publisher's own at-least-once retry from the note above. Phase 7 closes that gap, plus a dead-letter topic for a record that keeps failing, real idempotency keys on payment authorization, the account lockout and rate-limiter fixes this platform actually shipped, and the circuit-breaker window-sizing bug those fixes uncovered along the way.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 7 ============ -->
+    <section class="part" id="phase7">
+      <div class="part-label"><span class="num">07</span></div>
+      <h2>Hardening It</h2>
+      <p class="phase-goal">Goal: close every gap the last three phases named and deliberately left open. Five fixes, each with a real failure mode behind it — not defensive programming for its own sake.</p>
+
+      <h3>1. Idempotency keys — retry-safe writes on <code>order-service</code> and <code>payment-service</code></h3>
+      <p>Phase 1's <code>orders</code> table and phase 6's <code>payments</code> table both left this column out on purpose. The gap: a client's <code>POST /orders</code> times out on the network, not on the server — the order was actually created, but the client, having seen no response, retries the exact same request. Without something to recognize "I've seen this before," that's a second order, a second payment authorization, a second charge.</p>
+      <p class="filename">order-service/src/main/resources/db/migration (addition)</p>
+      <pre><code>ALTER TABLE orders ADD COLUMN idempotency_key VARCHAR(255);
+-- Partial index: nullable, so the (much more common) request with no key at all is never
+-- compared against anything -- only two requests that both supplied the *same* key collide.
+CREATE UNIQUE INDEX uq_orders_idempotency_key ON orders (idempotency_key) WHERE idempotency_key IS NOT NULL;</code></pre>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/service/impl/OrderServiceImpl.java (excerpt)</p>
+      <pre><code>@Transactional
+public IdempotentResult&lt;OrderResponse&gt; createOrder(OrderRequest request, String idempotencyKey) {
+    if (idempotencyKey != null) {
+        var existing = orderRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing.isPresent()) {
+            return IdempotentResult.replayed(orderMapper.toResponse(existing.get()));
+        }
+    }
+
+    var items = request.items().stream().map(this::reserveAndPrice).toList();
+    BigDecimal total = items.stream().map(OrderItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+    Order order = Order.create(request.customerId(), items, total, idempotencyKey);
+
+    Order saved;
+    try {
+        // saveAndFlush, not save -- a duplicate-key violation needs to surface here, inside
+        // this try, not silently at end-of-transaction flush where this catch is out of scope.
+        saved = orderRepository.saveAndFlush(order);
+    } catch (DataIntegrityViolationException e) {
+        if (idempotencyKey == null) throw e;
+        // Lost a race to a concurrent request carrying the same key. The reservations this
+        // attempt already made above are an accepted, narrow leak for that rare case.
+        Order winner = orderRepository.findByIdempotencyKey(idempotencyKey).orElseThrow(() -> e);
+        return IdempotentResult.replayed(orderMapper.toResponse(winner));
+    }
+
+    // ...authorize payment, confirm, publish -- same as phase 3/6, unchanged.
+    return IdempotentResult.created(orderMapper.toResponse(saved));
+}</code></pre>
+      <p class="filename">order-service/src/main/java/com/ecommerce/order/controller/OrderController.java (excerpt)</p>
+      <pre><code>@PostMapping
+public ResponseEntity&lt;OrderResponse&gt; create(@Valid @RequestBody OrderRequest request,
+        @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+    var result = orderService.createOrder(request, idempotencyKey);
+    // 201 for a genuinely new order; 200 for a replayed Idempotency-Key -- so a client can
+    // tell "this just happened" from "you already did this" without parsing the body.
+    return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK).body(result.body());
+}</code></pre>
+      <div class="note why">
+        <span class="tag">Why check-then-catch, not just check</span>
+        <p>The check at the top (<code>findByIdempotencyKey</code>) is an optimization, not the safety guarantee — two requests carrying the same key can both pass that check before either has committed. The unique index is the real guarantee; the <code>try</code>/<code>catch</code> is what turns that database-level rejection back into the same successful-looking replay response the client would have gotten if it had won the race. <code>payment-service</code>'s <code>PaymentServiceImpl.authorize</code> got the identical treatment — same partial index on <code>payments.idempotency_key</code>, same check-then-catch shape.</p>
+      </div>
+
+      <h3>2. Consumer idempotency and a DLQ — <code>notification-service</code></h3>
+      <p>Phase 6's checkpoint named this gap directly: Kafka only promises <em>at-least-once</em> delivery, and the naive consumer had no defense against a redelivered record. Two fixes, same root cause (a rebalance or restart can replay a record already handled):</p>
+      <p class="filename">notification-service/src/main/resources/db/migration (addition)</p>
+      <pre><code>ALTER TABLE notification_events
+    ADD CONSTRAINT uq_notification_events_type_source UNIQUE (event_type, source_id);</code></pre>
+      <p class="filename">notification-service/src/main/java/com/ecommerce/notification/event/PaymentEventConsumer.java (excerpt)</p>
+      <pre><code>if (notificationEventRepository.existsByEventTypeAndSourceId(EVENT_TYPE, event.orderId())) {
+    log.info("Skipping duplicate {} event for order {} -- already processed", EVENT_TYPE, event.orderId());
+    return;
+}
+NotificationEvent record = NotificationEvent.receive(EVENT_TYPE, event.orderId(), objectMapper.writeValueAsString(event));
+try {
+    // saveAndFlush + catch, same shape as #1 above -- closes the race where two redeliveries
+    // both pass the existsBy check before either persists.
+    notificationEventRepository.saveAndFlush(record);
+} catch (DataIntegrityViolationException e) {
+    log.info("Duplicate {} event for order {} raced onto the unique constraint -- already processed", EVENT_TYPE, event.orderId());
+    return;
+}
+emailService.sendPaymentConfirmation(record.getId(), event.orderId(), event.amount());</code></pre>
+      <p>The second fix is unrelated to duplication — it's what happens when a record isn't a duplicate, but genuinely can't be processed (a bug, a bad payload). Before this, the listener container's default behavior was to retry the same record forever, never advancing its offset, silently stalling the whole partition. This bounds it:</p>
+      <p class="filename">notification-service/src/main/java/com/ecommerce/notification/config/KafkaConsumerConfig.java (addition)</p>
+      <pre><code>@Bean
+public ProducerFactory&lt;String, Object&gt; dlqProducerFactory() {
+    Map&lt;String, Object&gt; props = Map.of(
+            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+    return new DefaultKafkaProducerFactory&lt;&gt;(props);
+}
+
+@Bean
+public KafkaTemplate&lt;String, Object&gt; dlqKafkaTemplate(ProducerFactory&lt;String, Object&gt; dlqProducerFactory) {
+    return new KafkaTemplate&lt;&gt;(dlqProducerFactory);
+}
+
+// 3 retries, 1s apart, then the record is published to payment-events.DLT and the offset is
+// committed -- the consumer moves on instead of stalling the partition forever.
+@Bean
+public DefaultErrorHandler kafkaErrorHandler(KafkaTemplate&lt;String, Object&gt; dlqKafkaTemplate) {
+    var recoverer = new DeadLetterPublishingRecoverer(dlqKafkaTemplate);
+    return new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3L));
+}</code></pre>
+      <div class="note">
+        <span class="tag">Wired onto the listener container factory</span>
+        <p><code>factory.setCommonErrorHandler(kafkaErrorHandler)</code> is the only change to the <code>ConcurrentKafkaListenerContainerFactory</code> bean from phase 6 — everything else about registering the <code>@KafkaListener</code> method stays the same. A deserialization failure (malformed JSON) is handled separately by <code>ErrorHandlingDeserializer</code>, already in place since phase 6; this error handler only ever sees exceptions the listener method itself throws.</p>
+      </div>
+
+      <h3>3. Account lockout — <code>user-service</code></h3>
+      <p>Phase 4's <code>users</code> table had no lockout columns, and <code>login</code> had no defense past "check the password." Five failed attempts locks the account for 15 minutes:</p>
+      <p class="filename">user-service/src/main/resources/db/migration (addition)</p>
+      <pre><code>ALTER TABLE users ADD COLUMN failed_login_attempts INT NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN locked_until TIMESTAMPTZ;</code></pre>
+      <p class="filename">user-service/src/main/java/com/ecommerce/user/entity/User.java (addition)</p>
+      <pre><code>private static final int MAX_FAILED_LOGIN_ATTEMPTS = 5;
+private static final long LOCKOUT_MINUTES = 15;
+
+public boolean isLocked() {
+    return lockedUntil != null &amp;&amp; lockedUntil.isAfter(Instant.now());
+}
+
+public void recordFailedLogin() {
+    failedLoginAttempts++;
+    if (failedLoginAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+        lockedUntil = Instant.now().plus(LOCKOUT_MINUTES, ChronoUnit.MINUTES);
+    }
+}
+
+public void recordSuccessfulLogin() {
+    failedLoginAttempts = 0;
+    lockedUntil = null;
+}</code></pre>
+      <p class="filename">user-service/src/main/java/com/ecommerce/user/service/impl/AuthServiceImpl.java (excerpt)</p>
+      <pre><code>@Transactional
+public LoginResponse login(LoginRequest request) {
+    User user = userRepository.findByEmail(request.email()).orElseThrow(InvalidCredentialsException::new);
+
+    // Checked before the password comparison so a locked-out account can't keep being probed
+    // for free. This does reveal the account is locked (distinguishable from "wrong
+    // password") -- an accepted tradeoff; the alternative tells a legitimately locked-out
+    // user nothing about why they can't log in.
+    if (user.isLocked()) {
+        throw new AccountLockedException();
+    }
+
+    if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        user.recordFailedLogin();
+        userRepository.save(user);
+        throw new InvalidCredentialsException();
+    }
+
+    user.recordSuccessfulLogin();
+    userRepository.save(user);
+    String accessToken = jwtService.generateAccessToken(user);
+    String refreshToken = issueRefreshToken(user.getId());
+    return new LoginResponse(accessToken, refreshToken, jwtService.accessTtlSeconds());
+}</code></pre>
+      <div class="note">
+        <span class="tag">One enumeration tradeoff, made consistently</span>
+        <p>Phase 4 already accepted that "wrong password" and "no such account" return the identical <code>InvalidCredentialsException</code> so a caller can't enumerate valid emails from the login endpoint. Locking reopens a narrower version of the same question — a <code>423 Locked</code> response does confirm the account exists. This codebase makes the same call OWASP's Authentication guidance makes: that narrow leak is worth it, because the alternative (a locked-out real user gets the same opaque error as a wrong password, forever, with no path to understanding why) is worse for legitimate users than it is protective against attackers, who already know whether the account they're attacking exists.</p>
+      </div>
+
+      <h3>4. Rate limiting fix — the ambiguous <code>KeyResolver</code> bean, gateway-service</h3>
+      <p>This is a real bug this build hit, not a hypothetical: phase 5's <code>RateLimiterConfig</code> shipped with a single <code>userKeyResolver</code> bean. Adding a second one for the login route below crashed the application context at startup — <code>RequestRateLimiterGatewayFilterFactory</code> autowires a default <code>KeyResolver</code> for any route that doesn't name one explicitly, and with two candidate beans and no way to pick, that autowiring is ambiguous.</p>
+      <p class="filename">gateway-service/src/main/java/com/ecommerce/gateway/config/RateLimiterConfig.java</p>
+      <pre><code>@Bean
+@Primary   // <-- the fix. Every route below names its resolver explicitly, so this default
+           // is never actually used -- but the bean still has to exist and be unambiguous.
+public KeyResolver userKeyResolver() {
+    return exchange -> Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("X-User-Id"))
+            .defaultIfEmpty("anonymous");
+}
+
+// Used only by the login route below, where there's no X-User-Id yet -- every unauthenticated
+// caller would otherwise share one "anonymous" bucket, so one credential-stuffing script
+// could exhaust everyone else's login attempts. Per-IP gives each caller their own bucket.
+@Bean
+public KeyResolver ipKeyResolver() {
+    return exchange -> Mono.justOrEmpty(exchange.getRequest().getRemoteAddress())
+            .map(addr -> addr.getAddress().getHostAddress())
+            .defaultIfEmpty("unknown");
+}</code></pre>
+      <p class="filename">gateway-service/src/main/resources/application.yml (excerpt)</p>
+      <pre><code>            - id: user-service-auth
+              uri: http://user-service
+              predicates: [ "Path=/users/auth/**" ]
+              filters:
+                - "RewritePath=/users/auth/(?&lt;segment&gt;.*), /api/v1/auth/$\\{segment}"
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 2
+                    redis-rate-limiter.burstCapacity: 5
+                    key-resolver: "#{@ipKeyResolver}"</code></pre>
+      <div class="note crit">
+        <span class="tag">Two independent layers, on purpose</span>
+        <p>This and fix #3 look redundant — both defend login — but they stop different attacks. The IP-keyed limiter (2/s, burst 5) stops a single script hammering the endpoint, before it ever reaches a real password check. Account lockout stops a <em>distributed</em> credential-stuffing attack — many IPs, each staying under the rate limit, all guessing passwords for one target account — which the rate limiter alone can't see because no single IP ever crosses its threshold. Defense in depth means each layer covers the other's blind spot, not that either one is redundant.</p>
+      </div>
+
+      <h3>5. Circuit breaker window-sizing — gateway-service</h3>
+      <p>Phase 5's circuit breaker excerpt showed <code>sliding-window-size</code>, <code>failure-rate-threshold</code>, and <code>wait-duration-in-open-state</code> per route and left it there. Two more settings default to values (100 and 10) sized for a much larger window than the 20 every instance here actually uses:</p>
+      <p class="filename">gateway-service/src/main/resources/application.yml (addition)</p>
+      <pre><code>resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        minimum-number-of-calls: 10
+        permitted-number-of-calls-in-half-open-state: 5
+    instances:
+      orderServiceCB: { sliding-window-size: 20, failure-rate-threshold: 50, wait-duration-in-open-state: 10s }
+      # ...one instance per route, same shape...</code></pre>
+      <div class="note crit">
+        <span class="tag">The symptom that gave this away</span>
+        <p>With <code>minimum-number-of-calls</code> left at its default of 100, a 20-slot <code>COUNT_BASED</code> window can <em>never</em> hold enough calls to satisfy it — the failure rate is never considered statistically valid, no matter what it actually is. Under bursty load this leaves a breaker flapping between <code>OPEN</code> and <code>HALF_OPEN</code> indefinitely, permanently short-circuiting real traffic even once the backing service is fully healthy again — the opposite of what a circuit breaker is for. Both settings need to fit inside the smaller window explicitly; sizing only <code>failure-rate-threshold</code>/<code>wait-duration-in-open-state</code> and assuming the rest inherits sensibly is exactly the mistake that shipped here first.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <pre><code># 1 -- Idempotency: same key, same order, twice
+KEY=$(uuidgen)
+curl -s -o /dev/null -w "%{http_code}\n" -X POST localhost:8080/orders -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: $KEY" -H 'Content-Type: application/json' -d '{...}'
+# 201
+curl -s -o /dev/null -w "%{http_code}\n" -X POST localhost:8080/orders -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: $KEY" -H 'Content-Type: application/json' -d '{...}'
+# 200 -- same order, not a second one
+
+# 2 -- Login rate limit: burst past 5 in under a second
+for i in $(seq 1 8); do curl -s -o /dev/null -w "%{http_code} " localhost:8080/users/auth/login \
+  -H 'Content-Type: application/json' -d '{"email":"x@example.com","password":"wrong"}'; done
+# 401 401 401 401 401 429 429 429 -- the limiter trips before the 5th genuine attempt even lands
+
+# 3 -- Account lockout: space attempts out past the rate limit, fail 5 times for real
+for i in $(seq 1 5); do curl -s -X POST localhost:8080/users/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"wrong"}' -o /dev/null -w "%{http_code}\n"; sleep 1; done
+curl -s -X POST localhost:8080/users/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}' -w "\n%{http_code}\n"
+# 423 -- locked out even with the *correct* password now, until locked_until passes</code></pre>
+        <p>The DLQ and circuit-breaker fixes are harder to prove with a one-line curl — you'd watch <code>payment-events.DLT</code> fill via a console consumer for the first, or watch a breaker's state transitions in the Grafana dashboards phase 10 wires up for the second. Both are real fixes for real failure modes this build hit, not hardening added because a checklist called for it. What's left: everything from here down is <em>how this already-correct application actually ships</em> — a Dockerfile, a Kubernetes manifest and Helm chart, the observability stack that makes the DLQ and circuit-breaker state actually visible, and a load test that proves the tuning under real concurrency.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 8 ============ -->
+    <section class="part" id="phase8">
+      <div class="part-label"><span class="num">08</span></div>
+      <h2>Containerize</h2>
+      <p class="phase-goal">Goal: every service builds into a small, non-root, container-aware runtime image, and <code>docker compose up</code> brings up the whole seven-service system plus Postgres, Kafka, and Redis — the exact same services this tutorial built one at a time, phases 1 through 7, now wired together with one command.</p>
+
+      <div class="step"><span class="step-num">1</span><strong>The Dockerfile</strong> — two <code>FROM</code> stages, not one. Every service in this platform uses the identical shape; here it is for <code>order-service</code>:</div>
+      <p class="filename">order-service/Dockerfile</p>
+      <pre><code>FROM eclipse-temurin:25-jdk-alpine AS build
+WORKDIR /app
+COPY gradlew build.gradle ./
+COPY gradle ./gradle
+COPY common ./common
+COPY order-service ./order-service
+# The root settings.gradle includes all 8 modules, but this build context only has
+# common/ and order-service/ -- regenerate a settings.gradle scoped to just what's actually
+# present, otherwise Gradle fails trying to configure sibling modules with no directory.
+RUN cat > settings.gradle &lt;&lt;'GRADLE_EOF' &amp;&amp; \
+    chmod +x gradlew &amp;&amp; ./gradlew :order-service:bootJar -x test --no-daemon
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+rootProject.name = 'ecommerce-platform'
+include 'common'
+include 'order-service'
+GRADLE_EOF
+
+FROM eclipse-temurin:25-jre-alpine
+RUN addgroup -S spring &amp;&amp; adduser -S spring -G spring
+WORKDIR /app
+COPY --from=build /app/order-service/build/libs/*.jar app.jar
+USER spring:spring
+EXPOSE 8084
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75", "--sun-misc-unsafe-memory-access=allow", "-jar", "app.jar"]</code></pre>
+
+      <div class="note why">
+        <span class="tag">Why two stages, not one</span>
+        <p>The first stage needs a full JDK, Gradle's own dependency cache, and every source file — none of which the running application needs, all of which is attack surface and image weight if it ships. <code>COPY --from=build</code> pulls across exactly one artifact, the built jar, into a fresh image that starts from a JRE (not a JDK — nothing here ever compiles anything at runtime). The build stage is discarded entirely; only the second <code>FROM</code> becomes the image that actually runs.</p>
+      </div>
+
+      <div class="note">
+        <span class="tag">The <code>settings.gradle</code> trick, and why it's necessary</span>
+        <p>This is a multi-module Gradle build — one root <code>settings.gradle</code> lists all 8 modules, and Gradle needs every listed module's directory to actually exist to configure the build at all. But the Dockerfile only <code>COPY</code>s <code>common/</code> and <code>order-service/</code> into the image — copying all 8 modules just to build one would make every service's image rebuild on every other service's code change, defeating Docker's layer cache entirely. The fix: a heredoc regenerates <code>settings.gradle</code> inside the build stage, scoped to only the two modules actually present, before <code>gradlew</code> ever runs. Small trick, but the alternative (an unscoped multi-module build in every single-service image) would make the whole containerization step far slower than it needs to be.</p>
+      </div>
+
+      <div class="note">
+        <span class="tag">Non-root, deliberately</span>
+        <p><code>addgroup -S spring &amp;&amp; adduser -S spring -G spring</code> then <code>USER spring:spring</code> means the JVM inside this container never runs as root. This doesn't harden the application code itself — it limits the blast radius <em>if</em> something inside the container is ever compromised: a process running as an unprivileged user can't write outside what it's explicitly been given access to, can't bind low ports, and fails several classes of container-escape technique that assume root. Kubernetes' own Pod Security Standards (phase 9) can enforce this as policy, not just convention — but the image has to actually not run as root first.</p>
+      </div>
+
+      <div class="note crit">
+        <span class="tag">The two flags after <code>-jar</code> that aren't decoration</span>
+        <p><code>-XX:+UseContainerSupport -XX:MaxRAMPercentage=75</code> tells the JVM to size its heap as a percentage of the <em>container's</em> cgroup memory limit, not the host machine's total RAM — without it, a JVM in a container capped at 512Mi can still see the host's 32GB and size its heap accordingly, then get OOMKilled the moment it actually tries to use what it thinks it has. This is exactly the failure mode <a href="performance-baseline.html">docs/performance-baseline.html</a> caught live: <code>gateway-service</code> OOMKilled under peak load in Kubernetes specifically because of a requests/limits mismatch these flags don't fully paper over — sizing the container's own memory limit correctly is still phase 9's job, but this flag is what makes the JVM honest about whatever limit it's given. <code>--sun-misc-unsafe-memory-access=allow</code> is unrelated: recent JDKs increasingly restrict reflective access to <code>sun.misc.Unsafe</code> by default, and a transitive dependency here (Netty, underneath both <code>reactor-netty</code> on the gateway and the Kafka client on every other service) still reaches into it for off-heap buffer performance tricks. This flag opts back into allowing that access rather than the JVM refusing to start.</p>
+      </div>
+
+      <div class="note">
+        <span class="tag">No <code>.dockerignore</code> in this repo — and why that's fine here</span>
+        <p>A <code>.dockerignore</code> exists to stop <code>COPY . .</code> from dragging <code>.git/</code>, build output, or stray secrets into the image. This Dockerfile never does a blanket <code>COPY . .</code> — every line names exactly the files and directories it needs (<code>gradlew</code>, <code>build.gradle</code>, <code>gradle/</code>, <code>common/</code>, and the one service directory). The allow-list <em>is</em> the ignore-list, just inverted; nothing not explicitly named ever enters the build context.</p>
+      </div>
+
+      <div class="step"><span class="step-num">2</span><strong>Wire it into <code>docker-compose.yaml</code></strong> — a Postgres instance per service (database-per-service, unchanged since phase 1), Kafka and Redis once each, then the services themselves:</div>
+      <p class="filename">docker-compose.yaml (excerpt)</p>
+      <pre><code>services:
+  postgres-orders:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: orders_db
+      POSTGRES_USER: orders_user
+      POSTGRES_PASSWORD: orders_pass
+    ports: ["5444:5432"]
+    volumes: ["pg-orders:/var/lib/postgresql/data"]
+
+  kafka:
+    image: apache/kafka:3.8.0
+    ports: ["9092:9092"]
+    # ...KRaft single-broker config, same as phase 6's docker run...
+
+  redis:
+    image: redis:7-alpine
+
+  order-service:
+    build: { context: ., dockerfile: order-service/Dockerfile }
+    depends_on: [postgres-orders, kafka, inventory-service, payment-service]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_PASSWORD: orders_pass
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8084:8084"]
+
+  gateway-service:
+    build: { context: ., dockerfile: gateway-service/Dockerfile }
+    depends_on: [user-service, product-service, inventory-service, order-service, payment-service, redis]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      REDIS_HOST: redis
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8080:8080"]</code></pre>
+      <div class="note">
+        <span class="tag">Why <code>build: { context: ., dockerfile: order-service/Dockerfile }</code>, not a context scoped to the service directory</span>
+        <p>The build context has to be the repo root, not <code>order-service/</code>, because the Dockerfile's <code>COPY common ./common</code> line needs <code>common/</code> to be reachable from wherever the build context starts — and <code>common/</code> lives as a sibling of <code>order-service/</code>, not inside it. Building a single image standalone outside Compose needs the same rule: <code>docker build -f order-service/Dockerfile -t order-service:local .</code>, run from the repo root, not from inside <code>order-service/</code>.</p>
+      </div>
+      <div class="note warn">
+        <span class="tag">What <code>depends_on</code> here does <em>not</em> guarantee</span>
+        <p>Without a <code>condition: service_healthy</code> clause (which needs a <code>healthcheck:</code> block this compose file doesn't define), <code>depends_on</code> only waits for <code>postgres-orders</code>'s container <em>process to start</em> — not for Postgres to actually be accepting connections yet. In practice this works locally because Postgres becomes ready in a second or two, while Spring Boot's own startup (classpath scanning, Flyway migrating, the JPA metamodel building) reliably takes longer — order-service is very unlikely to attempt its first connection before Postgres is listening. That's a real simplification, not a guarantee: it's exactly the gap Kubernetes readiness/liveness probes (phase 9) close properly, by asking the application itself "are you actually ready?" instead of inferring it from container start order.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <pre><code>docker compose up --build
+# ...all seven services plus six Postgres instances, Kafka, Redis, and the observability
+# stack come up; this takes a few minutes the first time, then reuses Docker's layer cache
+
+curl -s localhost:8084/actuator/health
+# {"status":"UP"}
+
+# Confirm it's actually non-root inside the running container
+docker exec order-service whoami
+# spring
+
+# Images stay small -- no build toolchain shipped in the runtime layer
+docker images | grep order-service
+# order-service    latest    ...    ~280MB
+
+# Full system, same login/order flow every checkpoint since phase 4 has used, now against
+# containers instead of a bare Postgres and `./gradlew bootRun`
+TOKEN=$(curl -s -X POST localhost:8080/users/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}' | jq -r .accessToken)
+curl -i localhost:8080/orders -H "Authorization: Bearer $TOKEN"</code></pre>
+        <p>Every phase before this one ran services with <code>./gradlew bootRun</code> against infrastructure started by hand (a bare <code>docker run postgres</code>, a bare <code>docker run kafka</code>). Nothing about the application changed to get here — the same jars, the same Flyway migrations, the same JWT secret shape. What changed is packaging: a reproducible, portable artifact that runs identically on a laptop or a cluster. That portability is the whole point of phase 9 — the same images, unchanged, become Kubernetes Pods next.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 9 ============ -->
+    <section class="part" id="phase9">
+      <div class="part-label"><span class="num">09</span></div>
+      <h2>Kubernetes &amp; Helm</h2>
+      <p class="phase-goal">Goal: <code>order-service</code>'s image from phase 8 runs as a Kubernetes Deployment with real health probes and autoscaling, deployed via a Helm chart — and the resource limits it runs with come from an actual load test, not a guess. This phase focuses on <em>what these manifests are and why they're shaped this way</em>; the exact command sequence to stand the whole platform up locally lives in <a href="local-deployment.html">docs/local-deployment.html</a>, not repeated here.</p>
+
+      <div class="step"><span class="step-num">1</span><strong>No service-registry code was ever written, on purpose.</strong> No Eureka server, no Consul agent, nothing in any <code>build.gradle</code> for one. Phase 8's <code>docker</code> profile already used plain hostnames (<code>http://user-service</code>) — Docker Compose's embedded DNS resolves a service name to whichever container is running it. Kubernetes does the identical job at cluster scale: every <code>Service</code> object gets a DNS name, cluster-wide, automatically. The <code>kubernetes</code> Spring profile just extends the same idea to a fully-qualified form for cross-namespace calls:</div>
+      <p class="filename">payment-service/src/main/resources/application.yml (kubernetes profile, excerpt)</p>
+      <pre><code>spring:
+  config:
+    activate:
+      on-profile: kubernetes
+  datasource:
+    url: jdbc:postgresql://postgres-payments.data.svc.cluster.local:5432/payments_db
+  kafka:
+    bootstrap-servers: kafka-broker-0.kafka.data.svc.cluster.local:9092,...</code></pre>
+      <div class="note">
+        <span class="tag"><code>&lt;service&gt;.&lt;namespace&gt;.svc.cluster.local</code>, decoded</span>
+        <p>This platform's Postgres StatefulSets live in a separate <code>data</code> namespace from the services in <code>ecommerce</code> (see step 4) — a same-namespace call could just say <code>postgres-payments</code>, but crossing a namespace boundary needs the fully-qualified form. This is the whole story: no registration call, no heartbeat, no client-side service cache to keep warm. A pod asks cluster DNS "where is <code>postgres-payments.data</code> right now" on every connection, and gets a live answer. See <a href="architecture.html#part5">architecture.html Part 5</a> for the deeper reference version of this same design choice.</p>
+      </div>
+
+      <div class="step"><span class="step-num">2</span><strong>The Deployment</strong> — this is what actually replaces phase 8's <code>docker compose up</code>. Templated with Helm (<code>{{ }}</code> placeholders filled from <code>values.yaml</code>), but every concrete value below is exactly what order-service runs with today:</div>
+      <p class="filename">helm/ecommerce-platform/charts/order-service/templates/deployment.yaml (excerpt)</p>
+      <pre><code>spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.containerPort }}"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: {{ include "order-service.fullname" . }}
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.global.imageTag | default .Values.image.tag }}"
+          envFrom:
+            - configMapRef: { name: {{ include "order-service.fullname" . }}-config }
+            - secretRef: { name: {{ include "order-service.fullname" . }}-secret }
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          startupProbe:
+            httpGet: { path: /actuator/health, port: {{ .Values.containerPort }} }
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: {{ .Values.containerPort }} }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: {{ .Values.containerPort }} }
+            periodSeconds: 15
+            failureThreshold: 3</code></pre>
+      <div class="note crit">
+        <span class="tag">Three probes, three different jobs — this is phase 8's promised fix</span>
+        <p>Phase 8 flagged that <code>depends_on</code> only knows container <em>start</em> order, not readiness, and promised Kubernetes would close that gap properly. Here's how: <strong>startupProbe</strong> gives a slow-starting JVM (Flyway migrating, the Spring context initializing) up to 30×5s=150s before anything else even starts checking — without it, a slower boot than expected gets killed as if it were hung. Once startup succeeds, <strong>readinessProbe</strong> takes over: while it's failing, Kubernetes removes the pod from the Service's routing rotation entirely — no traffic reaches a pod that isn't ready, which is the actual fix for phase 8's gap, not container start order. <strong>livenessProbe</strong> is different again: it decides whether to <em>restart</em> the pod outright, for a process that's still running but has become permanently stuck (a deadlock, an unrecoverable connection pool exhaustion) — 3 consecutive failures 15s apart before Kubernetes gives up and restarts it.</p>
+      </div>
+
+      <div class="step"><span class="step-num">3</span><strong>Config, secrets, and the Service</strong> — the same jar from phase 8, unchanged; only what's injected around it differs by environment:</div>
+      <p class="filename">helm/ecommerce-platform/charts/order-service/templates/configmap.yaml</p>
+      <pre><code>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "order-service.fullname" . }}-config
+data:
+  SPRING_PROFILES_ACTIVE: "kubernetes"
+  SERVER_PORT: "{{ .Values.containerPort }}"
+  LOGGING_LEVEL_COM_ECOMMERCE_ORDER: "{{ .Values.logLevel }}"</code></pre>
+      <p class="filename">helm/ecommerce-platform/charts/order-service/templates/service.yaml</p>
+      <pre><code>apiVersion: v1
+kind: Service
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "order-service.labels" . | nindent 4 }}
+  ports:
+    - port: 80
+      targetPort: {{ .Values.containerPort }}</code></pre>
+      <div class="note why">
+        <span class="tag">Why <code>SPRING_PROFILES_ACTIVE</code> is injected, never baked into the image</span>
+        <p>The image built in phase 8 has no idea whether it's about to run in Compose or Kubernetes — it's the exact same jar either way. <code>SPRING_PROFILES_ACTIVE=kubernetes</code> arriving as an environment variable from this <code>ConfigMap</code>, rather than a build-time argument, is what makes one image portable across every environment in <code>helm/ecommerce-platform/values-*.yaml</code> (local, dev, qa, uat, prod) without ever rebuilding it. Build once, configure per-deployment — the same principle phase 4's HS512 secret and phase 6's Kafka bootstrap servers already followed via profile-scoped <code>application.yml</code> blocks; this is just Kubernetes' mechanism for supplying it.</p>
+      </div>
+
+      <div class="step"><span class="step-num">4</span><strong>Stateful services get a different shape</strong> — Postgres isn't a Deployment. A <code>StatefulSet</code> gives each replica a stable identity and its own persistent volume that survives a pod restart:</div>
+      <p class="filename">kubernetes/postgres/postgres-orders.yaml (excerpt)</p>
+      <pre><code>apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-orders
+  namespace: data
+spec:
+  serviceName: postgres-orders
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "orders_user"] }
+            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 50Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-orders
+  namespace: data
+spec:
+  clusterIP: None   # headless -- DNS resolves straight to the pod, not a load-balanced VIP
+  selector: { app: postgres-orders }
+  ports: [{ port: 5432, targetPort: 5432 }]</code></pre>
+      <div class="note">
+        <span class="tag"><code>clusterIP: None</code> and <code>volumeClaimTemplates</code>, together</span>
+        <p>A normal <code>ClusterIP</code> Service load-balances across whichever pods match its selector — fine for stateless order-service replicas that are all interchangeable, wrong for a database where "any Postgres pod" isn't the same as "the Postgres pod with your data." A headless Service (<code>clusterIP: None</code>) instead makes DNS resolve directly to the backing pod itself. <code>volumeClaimTemplates</code> is the other half: each StatefulSet replica gets its own <code>PersistentVolumeClaim</code> that outlives the pod — delete and recreate the pod, the same disk reattaches. In <code>uat</code>/<code>prod</code> this whole manifest is replaced by a managed Postgres offering instead (RDS, Azure Database for PostgreSQL) — see <a href="architecture.html#part14">architecture.html Part 14</a> for that tradeoff; local/dev self-hosts because a managed instance per environment isn't worth provisioning for a laptop.</p>
+      </div>
+
+      <div class="step"><span class="step-num">5</span><strong>The Helm chart structure</strong> — one umbrella chart, one subchart per service, so <code>helm upgrade --install</code> deploys or updates all seven together as a single release:</div>
+      <p class="filename">helm/ecommerce-platform/Chart.yaml (excerpt)</p>
+      <pre><code>apiVersion: v2
+name: ecommerce-platform
+dependencies:
+  - name: order-service
+    version: 1.0.0
+    repository: "file://charts/order-service"
+  # ...one dependency per service, same shape...</code></pre>
+      <p class="filename">helm/ecommerce-platform/charts/order-service/templates/_helpers.tpl</p>
+      <pre><code>{{- define "order-service.fullname" -}}
+order-service
+{{- end -}}
+
+{{- define "order-service.labels" -}}
+app: {{ include "order-service.fullname" . }}
+{{- end -}}</code></pre>
+      <div class="note">
+        <span class="tag">Why <code>_helpers.tpl</code> is this small</span>
+        <p>A chart meant for public reuse would compute <code>fullname</code> from <code>.Release.Name</code> and <code>.Chart.Name</code>, so the same chart could be installed multiple times per cluster under different release names without colliding. This platform's charts don't need that — there's exactly one release, named <code>ecommerce</code>, once per environment. The helper still exists as the single place every template asks "what's my name," so if that ever needed to change, it changes in one file, not eight.</p>
+      </div>
+
+      <div class="step"><span class="step-num">6</span><strong>Autoscaling</strong> — a <code>HorizontalPodAutoscaler</code> per service, watching CPU:</div>
+      <p class="filename">helm/ecommerce-platform/charts/order-service/templates/hpa.yaml</p>
+      <pre><code>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: {{ include "order-service.fullname" . }} }
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: {{ .Values.autoscaling.targetCPUUtilization }} }</code></pre>
+
+      <div class="step"><span class="step-num">7</span><strong>Environment-specific values, layered on top of one chart</strong> — the same templates above, different numbers per environment:</div>
+      <p class="filename">helm/ecommerce-platform/values-local.yaml (excerpt)</p>
+      <pre><code>global:
+  namespace: ecommerce
+  imageRegistry: ecommerce-local   # built by scripts/build-local-images.sh, no registry push
+  imageTag: local
+
+order-service:
+  replicaCount: 1
+  resources: { requests: { cpu: 250m, memory: 384Mi }, limits: { cpu: 1000m, memory: 768Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 1 }</code></pre>
+      <pre><code>helm upgrade --install ecommerce ./helm/ecommerce-platform -f ./helm/ecommerce-platform/values-local.yaml -n ecommerce --create-namespace</code></pre>
+      <div class="note crit">
+        <span class="tag">These specific numbers came from a real load test, not a guess</span>
+        <p>The comment actually sitting above these values in this repo tells the real story: an earlier, tighter baseline (100m/256Mi request, 500m/512Mi limit, uniform across all seven services) held up fine at rest but failed under <code>loadtest/peak-load.js</code> — <code>user-service</code> and <code>order-service</code> were both sitting at 60-78% of their 512Mi memory limit at <em>idle</em> immediately after just a 5-VU smoke run. The specific culprit for user-service: <code>BCryptPasswordEncoder</code> at strength 12 (phase 4) is deliberately CPU-expensive by design, and a single hash was already taking ~700ms with zero concurrent load — so it got the highest CPU limit of any service here (1500m) despite handling less traffic than order-service. That finding also had a caller-side half of the same fix, in <code>gateway-service</code>:</p>
+      </div>
+      <p class="filename">gateway-service/src/main/resources/application.yml (excerpt)</p>
+      <pre><code>resilience4j:
+  timelimiter:
+    instances:
+      # The gateway's CircuitBreaker filter defaults every instance's call timeout to 1s --
+      # fine for typical CRUD reads, too tight for user-service: BCrypt strength 12 already
+      # takes ~250-700ms per hash by design, and login/signup each do at least one.
+      userServiceCB: { timeout-duration: 3s }</code></pre>
+      <div class="note">
+        <span class="tag">Callee-side and caller-side, both needed</span>
+        <p>Raising user-service's own CPU limit (callee-side) without also raising the gateway's circuit-breaker timeout for calls to it (caller-side) would still trip the breaker under load — the callee would eventually have enough CPU to finish a hash, but the caller would already have given up and counted it as a failure. Neither fix alone was sufficient; this is exactly the kind of cross-service tuning <a href="performance-baseline.html">docs/performance-baseline.html</a> exists to catch, dated and reproducible rather than tribal knowledge.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <pre><code>./scripts/build-local-images.sh
+helm upgrade --install ecommerce ./helm/ecommerce-platform \
+  -f ./helm/ecommerce-platform/values-local.yaml -n ecommerce --create-namespace
+
+kubectl get pods -n ecommerce
+# NAME                          READY   STATUS    RESTARTS
+# order-service-7d9f...         1/1     Running   0
+# (STATUS goes Pending -> ContainerCreating -> Running, then READY flips 0/1 -> 1/1 once
+#  the readiness probe -- not just the container starting -- actually passes)
+
+kubectl port-forward -n ecommerce svc/gateway-service 8080:80 &
+TOKEN=$(curl -s -X POST localhost:8080/users/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}' | jq -r .accessToken)
+curl -i localhost:8080/orders -H "Authorization: Bearer $TOKEN"
+# same request, same response shape, as every checkpoint since phase 4 -- now served by a pod
+
+kubectl get hpa -n ecommerce
+# NAME             REFERENCE                   TARGETS   MINPODS   MAXPODS
+# order-service    Deployment/order-service     3%/70%    1         1
+
+# Delete a running pod outright and watch the readinessProbe do its job
+kubectl delete pod -n ecommerce -l app=order-service
+kubectl get pods -n ecommerce -w
+# the old pod terminates, a new one appears at 0/1, traffic through the Service keeps
+# flowing to whatever's still Running the whole time -- and the new pod only joins
+# rotation once /actuator/health/readiness actually returns 200, not on a timer</code></pre>
+        <p>Every phase up to this one asked "does the code work." This one asks "does it survive the platform actually running it" — a pod dying mid-traffic, a slow start not being mistaken for a hang, a resource limit sized from evidence instead of intuition. What's still missing is <em>seeing</em> any of this happen without <code>kubectl</code> commands run by hand — no dashboards, no traces, no searchable logs yet. Phase 10 is that.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 10 ============ -->
+    <section class="part" id="phase10">
+      <div class="part-label"><span class="num">10</span></div>
+      <h2>Observability</h2>
+      <p class="phase-goal">Goal: every service's metrics, traces, and logs are visible in one place — Prometheus/Grafana, Jaeger, and Kibana — without a single <code>kubectl logs</code> or <code>docker logs</code> command. This closes exactly the gap phase 9's checkpoint named: real failures now happening inside real infrastructure, finally visible instead of inferred.</p>
+
+      <h3>Metrics: what a service is doing, in numbers</h3>
+      <div class="step"><span class="step-num">1</span><strong>Every service already exposes this</strong> — <code>management.endpoints.web.exposure.include: health,info,prometheus</code> has been in every service's <code>application.yml</code> since it was first written, and <code>micrometer-registry-prometheus</code> has been a dependency the whole way through. Phase 9's Deployment annotations (<code>prometheus.io/scrape: "true"</code>) already told you this endpoint existed; this phase is what actually reads it:</div>
+      <p class="filename">monitoring/prometheus-docker.yml</p>
+      <pre><code>scrape_configs:
+  - job_name: ecommerce-services
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - order-service:8084
+          - payment-service:8085
+          # ...one entry per service, Docker Compose's DNS resolves each name...</code></pre>
+      <p class="filename">kubernetes/observability/prometheus.yaml (excerpt)</p>
+      <pre><code>scrape_configs:
+  - job_name: kubernetes-pods
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces: { names: [ecommerce] }
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: "true"
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)</code></pre>
+      <div class="note why">
+        <span class="tag">Same idea as every other docker-vs-kubernetes profile split in this tutorial</span>
+        <p>Compose's variant is a static, hand-written list — it works, but someone has to remember to add a line when a new service is added. The Kubernetes variant instead asks the API server directly: "find every pod in the <code>ecommerce</code> namespace with <code>prometheus.io/scrape: true</code>," discovered continuously, no static list to maintain, and it survives pods being replaced (a new pod IP is picked up automatically — the same self-healing property <code>scripts/port-forward-persistent.sh</code> exists to work around for a human's own <code>kubectl port-forward</code>).</p>
+      </div>
+
+      <h3>Grafana: metrics, made visible without an "add datasource" click</h3>
+      <div class="step"><span class="step-num">2</span><strong>Provisioning, not manual setup</strong> — the datasource and every dashboard load automatically from files, on container start:</div>
+      <p class="filename">monitoring/grafana/provisioning/datasources/datasource.yaml</p>
+      <pre><code>apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    url: http://prometheus:9090
+    isDefault: true</code></pre>
+      <p class="filename">monitoring/grafana/provisioning/dashboards/dashboards.yaml</p>
+      <pre><code>apiVersion: 1
+providers:
+  - name: ecommerce-platform
+    folder: "E-Commerce Platform"
+    type: file
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards</code></pre>
+      <p>Every service gets its own dashboard, built around the same panel set — the four golden signals (latency, traffic, errors, saturation), plus this platform's own reliability mechanisms made visible:</p>
+      <p class="filename">monitoring/grafana/order-service-dashboard.json (panel titles)</p>
+      <pre><code>Request rate
+Error rate (%)
+p50 / p95 / p99 latency
+JVM heap used
+Circuit breaker state (inventory-service, payment-service)
+HikariCP active connections</code></pre>
+      <div class="note">
+        <span class="tag">The last two panels aren't generic — they're this platform's own history</span>
+        <p>"Circuit breaker state" is phase 5 and phase 7's resilience4j work made visible — you can watch a breaker actually flip <code>CLOSED</code>&#8594;<code>OPEN</code>&#8594;<code>HALF_OPEN</code> in real time instead of inferring it from a burst of 503s. "HikariCP active connections" is saturation, concretely: a connection pool maxed out under load is a specific, visible number, not a vague sense that things feel slow. <code>GF_AUTH_ANONYMOUS_ENABLED: "true"</code> in <code>docker-compose.yaml</code>'s <code>grafana</code> service (viewer role only) means anyone on the team can open these without a login prompt for local work — write access still requires signing in.</p>
+      </div>
+
+      <h3>Traces: what happened, across every service, for one request</h3>
+      <div class="step"><span class="step-num">3</span><strong>Automatic, unlike phase 5's correlation ID</strong> — <code>spring-boot-starter-opentelemetry</code> instruments the Feign calls from phase 3 and the HTTP layer without any code in this platform writing a trace header by hand:</div>
+      <p class="filename">order-service/src/main/resources/application.yml (excerpt)</p>
+      <pre><code>management:
+  tracing:
+    sampling:
+      probability: 1.0   # every request traced, in dev -- see the note below for why not in prod
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://otel-collector:4318/v1/traces</code></pre>
+      <p class="filename">monitoring/otel-collector-config-docker.yaml</p>
+      <pre><code>receivers:
+  otlp:
+    protocols:
+      grpc: { endpoint: 0.0.0.0:4317 }
+      http: { endpoint: 0.0.0.0:4318 }
+processors:
+  batch: {}
+  memory_limiter: { check_interval: 5s, limit_mib: 512 }
+exporters:
+  otlp/jaeger: { endpoint: jaeger:4317, tls: { insecure: true } }
+  prometheus: { endpoint: 0.0.0.0:8889 }
+service:
+  pipelines:
+    traces: { receivers: [otlp], processors: [memory_limiter, batch], exporters: [otlp/jaeger] }
+    metrics: { receivers: [otlp], processors: [memory_limiter, batch], exporters: [prometheus] }</code></pre>
+      <div class="note">
+        <span class="tag">Two independent paths metrics can take, on purpose</span>
+        <p>Prometheus scrapes <code>/actuator/prometheus</code> on each service directly (the metrics section above) — that's Micrometer's own registry. The OTel Collector's <code>prometheus</code> exporter above is a <em>second</em>, separate path: OTel-native metrics (mostly from auto-instrumented libraries) flow through the collector and get their own scrape target (<code>otel-collector:8889</code>). Both exist in this stack; they're not redundant, they cover different metric sources.</p>
+      </div>
+      <div class="note crit">
+        <span class="tag">Trace ID vs. correlation ID — two different tools, not a duplicate</span>
+        <p>This might look redundant with the <code>X-Correlation-Id</code> phases 3, 5, and 6 built by hand — it isn't. A trace ID is <em>automatic infrastructure</em>: Micrometer Tracing generates it, propagates it across an instrumented Feign call without any code here asking it to, and it lives and dies with the OTel pipeline's retention window. Correlation ID is <em>deliberate application design</em>: this platform chose to generate it at the gateway, thread it through Feign headers by hand (phase 3's interceptor), and — critically — carry it across the one boundary OTel's HTTP instrumentation can't reach on its own: the async gap through Kafka's outbox pattern (phase 6), where it's stored as a plain database column and re-attached as a Kafka header specifically because nothing does that automatically. In practice both end up in the same structured log line (next section) — search by either, depending on whether you're starting from "a customer quoted this ID back to me" (correlation ID) or "I'm looking at this specific span in Jaeger" (trace ID).</p>
+      </div>
+      <div class="note warn">
+        <span class="tag"><code>sampling.probability: 1.0</code> is a dev-only setting</span>
+        <p>Tracing every single request is affordable at local/dev traffic volumes and invaluable for a tutorial where you want to see exactly what you just triggered. At production volume it becomes real, ongoing cost (storage, collector throughput) for traces nobody will ever look at — a production deployment would sample a fraction (often 1-10%, plus always-sample-on-error) rather than everything. Not a bug in this reference config, just a choice that's correct for <em>this</em> environment specifically, the same way <code>ddl-auto: validate</code> everywhere and HS512 in phase 4 were.</p>
+      </div>
+
+      <h3>Logs: structured, shipped, and searchable — not scrollback</h3>
+      <div class="step"><span class="step-num">4</span><strong>Every service has emitted structured JSON since it was first written</strong> — <code>logging.structured.format.console: logstash</code>, one line, no custom encoder:</div>
+      <pre><code>logging:
+  structured:
+    format:
+      console: logstash</code></pre>
+      <div class="note">
+        <span class="tag">Trace and span IDs ride along automatically, too</span>
+        <p>With <code>spring-boot-starter-opentelemetry</code> on the classpath, Boot's structured logging includes <code>traceId</code>/<code>spanId</code> as top-level JSON fields on every log line, with zero additional configuration — the same mechanism that put <code>correlationId</code> into every log line via <code>MDC.put(...)</code> in phases 3, 5, and 6 now sits alongside a trace ID Boot populated on its own. One log line, both IDs, either one is a valid way in.</p>
+      </div>
+      <div class="step"><span class="step-num">5</span><strong>Shipping those JSON lines somewhere searchable</strong> — Filebeat reads container logs, Logstash parses and routes them, Elasticsearch indexes them, Kibana searches them:</div>
+      <p class="filename">monitoring/filebeat-docker.yml</p>
+      <pre><code>filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      templates:
+        - condition:
+            contains: { docker.container.image: "ecommerce" }
+          config:
+            - type: container
+              paths: ["/var/lib/docker/containers/${data.docker.container.id}/*.log"]
+output.logstash:
+  hosts: ["logstash:5044"]</code></pre>
+      <p class="filename">monitoring/logstash/pipeline.conf</p>
+      <pre><code>input { beats { port => 5044 } }
+filter {
+  json { source => "message" }
+  date { match => ["timestamp", "ISO8601"] target => "@timestamp" }
+}
+output {
+  elasticsearch {
+    hosts => ["elasticsearch:9200"]
+    index => "ecommerce-%{[docker][container][labels][com_docker_compose_service]}-%{+YYYY.MM.dd}"
+  }
+}</code></pre>
+      <div class="note">
+        <span class="tag">Autodiscovery again, same shape as metrics scraping</span>
+        <p>Filebeat's Docker Compose variant watches the Docker socket directly for any container whose image name contains <code>ecommerce</code>; the Kubernetes variant (<code>monitoring/filebeat.yaml</code>) instead reads <code>/var/log/containers/*ecommerce*.log</code> and enriches each line with pod metadata via <code>add_kubernetes_metadata</code>. Same pattern as the Prometheus scrape config split earlier in this phase: Compose gets an explicit rule, Kubernetes asks the platform. One index per service per day (<code>ecommerce-order-service-2026.07.23</code>) keeps Kibana searches scoped without cross-service noise by default, while still letting a correlation ID search span every index at once when that's what you actually want.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint — one request, traced across every layer</h4>
+        <pre><code>curl -i localhost:8080/orders -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"customerId":"...","items":[...]}'
+# X-Correlation-Id: 7f2c1e9a-...  <- copy this out of the response headers
+
+# 1. Metrics -- Prometheus actually scraping every target
+open http://localhost:9090/targets
+# every ecommerce-services target State: UP
+
+# 2. Dashboards -- the request you just made shows up as a blip
+open http://localhost:3000
+# order-service dashboard -> Request rate ticks up, p95 latency panel shows the real number
+
+# 3. Traces -- the exact distributed trace for that one request
+open http://localhost:16686
+# search Service: order-service -> the newest trace shows spans for order-service,
+# the Feign call into payment-service, and the outbox publish -- one waterfall,
+# the whole cross-service path this single order-service was built across phases 1-6
+
+# 4. Logs -- search by the correlation ID from the response header, not free-text grep
+open http://localhost:5601
+# Discover -> correlationId: "7f2c1e9a-..." -> every log line this one request touched,
+# across order-service, payment-service, and notification-service, in one result set</code></pre>
+        <p>This is the payoff for everything phases 1 through 9 built carefully rather than quickly: the correlation ID phase 3 started propagating by hand, the outbox row phase 6 wrote specifically to survive the Kafka gap, the circuit breaker state phase 7 fixed the window-sizing bug for — all of it is now something you can actually <em>see</em>, for one real request, without SSHing anywhere or guessing. What's left is proving this all holds up under concurrent load, not just one request at a time — phase 11.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHASE 11 ============ -->
+    <section class="part" id="phase11">
+      <div class="part-label"><span class="num">11</span></div>
+      <h2>Load Test &amp; Tune</h2>
+      <p class="phase-goal">Goal: prove this holds up under real concurrent load, not just one request at a time. Every checkpoint since phase 4 has proven correctness — the right status code, the right body, for one request. This phase asks a different question entirely: capacity (how much load before it degrades), shock absorption (what happens in the first five seconds of a sudden burst), and stability over time (does it stay healthy after 30 minutes, not just 30 seconds) — using k6 against the real stack, then looking at what a real run actually found.</p>
+
+      <div class="step"><span class="step-num">1</span><strong>One shared traffic mix, three different question shapes</strong> — every script below imports the identical flows, so a result is comparable across test shapes instead of secretly exercising different code paths:</div>
+      <p class="filename">loadtest/lib/flows.js (excerpt)</p>
+      <pre><code>// Traffic mix, same across every script that uses it:
+//   browse            (45%) anonymous catalog reads -- no auth overhead
+//   order_journey     (30%) full new-customer flow: signup, login, order, track, cancel
+//   repeat_login      (15%) an existing customer logging in and checking their orders
+//   admin_ops         (10%) admin dashboard-style reads (all orders, notification log)
+
+export function mixedTraffic(data) {
+  const r = Math.random();
+  if (r < 0.45) browse(data);
+  else if (r < 0.75) orderJourney(data);
+  else if (r < 0.9) repeatLogin(data);
+  else adminOps(data);
+  sleep(Math.random() * 0.5 + 0.2); // 200-700ms think time -- not an unrealistic tight loop
+}
+
+function flagIfUnexpected(res) {
+  // 4xx from the app's own validation/RBAC logic is expected traffic noise under load, not
+  // a system failure. 5xx and connection-level failures (status 0) are the real signal.
+  const isUnexpected = res.status === 0 || res.status >= 500;
+  unexpectedErrors.add(isUnexpected);
+}</code></pre>
+      <div class="note why">
+        <span class="tag">Why "unexpected errors" isn't just "any non-2xx"</span>
+        <p>A naive load test that counts every 4xx as a failure cries wolf constantly — phase 7's login rate limiter returning <code>429</code> under a credential-stuffing-shaped burst is the system working <em>correctly</em>, not a bug. <code>flagIfUnexpected</code> draws the real line: a <code>4xx</code> is the application making a deliberate decision (reject this, rate-limit this, reject this idempotency replay); a <code>5xx</code> or a connection-level failure (<code>status === 0</code>) means something actually broke. Only the second kind counts toward the threshold that decides whether a run passed.</p>
+      </div>
+
+      <div class="step"><span class="step-num">2</span><strong>Three scripts, three different failure modes, same imported flows:</strong></div>
+      <p class="filename">loadtest/peak-load.js — "where does capacity run out?"</p>
+      <pre><code>peak: [
+  { duration: '30s', target: 20 },  { duration: '45s', target: 20 },
+  { duration: '30s', target: 50 },  { duration: '45s', target: 50 },
+  { duration: '30s', target: 100 }, { duration: '45s', target: 100 },
+  { duration: '30s', target: 200 }, { duration: '45s', target: 200 },
+  { duration: '30s', target: 350 }, { duration: '45s', target: 350 },
+  { duration: '30s', target: 500 }, { duration: '45s', target: 500 },
+  { duration: '30s', target: 0 },
+],
+thresholds: {
+  unexpected_errors: ['rate&lt;0.02'],
+  flow_browse_duration: ['p(95)&lt;800'],
+  // 4+ inter-service hops (product, inventory x2, payment) -- more room, but flag real
+  // degradation once p95 crosses 3s.
+  flow_order_journey_duration: ['p(95)&lt;3000'],
+},</code></pre>
+      <p class="filename">loadtest/spike-load.js — "does it shed load and recover cleanly?"</p>
+      <pre><code>spike: [
+  { duration: '20s', target: 15 },   // baseline
+  { duration: '40s', target: 15 },   // hold, let it settle
+  { duration: '5s',  target: 400 },  // as close to instant as k6's ramp allows
+  { duration: '45s', target: 400 },  // hold at the spike -- shedding should kick in here
+  { duration: '10s', target: 15 },   // drop back just as suddenly
+  { duration: '60s', target: 15 },   // recovery window -- back to normal, or still degraded?
+  { duration: '20s', target: 0 },
+],</code></pre>
+      <p class="filename">loadtest/soak-load.js — "does it stay healthy over time?"</p>
+      <pre><code>soak: [
+  { duration: '1m', target: 30 },
+  { duration: `${__ENV.SOAK_MINUTES || 30}m`, target: 30 },
+  { duration: '1m', target: 0 },
+],</code></pre>
+      <div class="note">
+        <span class="tag">Why a burst and a long hold need separate scripts, not one</span>
+        <p>A gradual ramp (peak) never produces the failure mode a real flash sale or a retry storm actually causes — an instant jump, not a slope. And a short high-intensity run never surfaces what only shows up after sustained time: a connection pool slowly leaking, the outbox poller or a Kafka consumer rebalance degrading under accumulated state, disk filling from logs. For a spike, success means requests get shed cleanly (some <code>429</code>s are fine) and latency returns to baseline in the recovery window — not that nothing gets rejected. For a soak, the real signal is p95 latency and error rate in the <em>last</em> 10% of the run compared to the <em>first</em> 10% — flat is a pass, drifting upward is the finding, even if every individual request still nominally "succeeded."</p>
+      </div>
+
+      <div class="step"><span class="step-num">3</span><strong>Running it, wired into phase 10's Grafana instead of only terminal output:</strong></div>
+      <pre><code>k6 run --env PROFILE=peak \
+  --out experimental-prometheus-rw=http://localhost:9090/api/v1/write \
+  --tag testid=peak-$(date +%s) \
+  loadtest/peak-load.js</code></pre>
+      <p>Watch it live on <code>monitoring/grafana/loadtest-dashboard.json</code> instead of waiting for the summary at the end — this is phase 10's whole point paying off: the same Prometheus that scrapes every service's <code>/actuator/prometheus</code> also receives k6's own metrics via remote-write, so a load test's request rate sits next to the dashboards it's putting load through.</p>
+
+      <div class="step"><span class="step-num">4</span><strong>What a real run against this exact platform actually found</strong> — captured 2026-07-23, one run of all three shapes against both Docker Compose and Kubernetes, back to back, same laptop:</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Run</th><th class="num">Peak VUs</th><th class="num">Unexpected errors</th><th class="num">order_journey p95</th></tr></thead>
+        <tbody>
+          <tr><td>Compose · peak</td><td class="num">500</td><td class="num">17.08%</td><td class="num">1.65s</td></tr>
+          <tr><td>Compose · spike</td><td class="num">400</td><td class="num">0.00%</td><td class="num">870ms</td></tr>
+          <tr><td>K8s · peak</td><td class="num">500</td><td class="num">22.13%</td><td class="num">8.00s</td></tr>
+          <tr><td>K8s · spike</td><td class="num">400</td><td class="num">51.66%</td><td class="num">6.01s</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note crit">
+        <span class="tag">Same code, same script, meaningfully worse outcome — and it's explainable, not mysterious</span>
+        <p>Every number above traces back to one structural difference: <strong>Kubernetes enforces the Helm chart's per-pod CPU/memory limits from phase 9's <code>values-local.yaml</code>; Docker Compose enforces nothing at all.</strong> Under light load that's invisible. Under this load, it produced two real pod restarts, not just slow responses: <code>gateway-service</code> was <code>OOMKilled</code> once during the peak run (<code>Exit Code: 137</code>) against its 768Mi limit, genuinely exceeded at the 500-VU plateau; <code>user-service</code> restarted once during the soak run (<code>Exit Code: 143</code>, SIGTERM — a liveness-probe timeout under BCrypt-driven CPU contention, not an OOM) at only 30 VUs — the identical load Compose handled at 0.00% unexpected errors. Phase 9's resource tuning (raising limits after a 5-VU smoke test found request failures) was correctly sized for <em>that</em> test. It wasn't sized for this one. That's not a contradiction — it's exactly what a peak/spike/soak run at real concurrency exists to find that a smoke test can't.</p>
+      </div>
+      <div class="note">
+        <span class="tag">This is the platform working as designed, not failing</span>
+        <p>Compose's numbers look better specifically because it has no ceiling to hit — every service can burst to use as much of the host's CPU/memory as it needs. That's not "Compose is more production-ready than Kubernetes"; it's the opposite: unbounded resources hide problems locally that a real cluster's resource limits will always surface eventually. Load-testing against Kubernetes specifically, rather than only the easier Compose numbers, is what turned an invisible problem into two dated, reproducible, actionable findings — <a href="performance-baseline.html">docs/performance-baseline.html</a> is where they're written up in full, including the honest "known follow-up, not fixed here" note: these limits need another tuning pass informed by <em>this</em> data, not the smoke test that originally set them.</p>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✓ Checkpoint</h4>
+        <pre><code># Quick sanity pass against whichever stack is up right now -- proves the scripts and the
+# stack both actually work, in under a minute, before committing to a full run
+k6 run --env PROFILE=smoke loadtest/peak-load.js
+k6 run --env PROFILE=smoke loadtest/spike-load.js
+k6 run --env PROFILE=smoke loadtest/soak-load.js
+
+# Watch it happen, not just read the summary after
+open http://localhost:3000   # loadtest-dashboard.json -- request rate, error rate, p95 live
+open http://localhost:16686  # a slow order_journey trace during the run, waterfall and all
+
+# The full, real captured numbers this build produced -- not something to take on faith
+open docs/performance-baseline.html</code></pre>
+        <p>Eleven phases ago this was one Spring Boot service with a Postgres connection and nothing else. Every phase since added exactly one real capability, in the order this platform actually needed it — and every phase's checkpoint was a real, runnable command against real, working code, not a diagram. What you have now is the same platform documented in every other file under <code>docs/</code>: <a href="architecture.html">architecture.html</a> is this same system in reference form rather than build order, <a href="local-deployment.html">local-deployment.html</a> is the operational how-to-run-it guide, <a href="learning-guide.html">learning-guide.html</a> is a reading path through it for someone who'd rather study the finished code than rebuild it, and <a href="performance-baseline.html">performance-baseline.html</a> is this phase's findings written up in full. There's no phase 12 — from here, the honest next step for this platform is exactly what phase 11 found: another resource-tuning pass, informed by real data instead of a guess.</p>
+      </div>
+    </section>
+
+    <footer>
+All 11 phases complete. This tutorial builds the same platform documented in <a href="architecture.html">docs/architecture.html</a> (the full reference — every part cross-linked from the phase that builds it, above), <a href="local-deployment.html">docs/local-deployment.html</a> (how to actually run it, every day), <a href="learning-guide.html">docs/learning-guide.html</a> (a guided reading path for studying the finished code instead of building it from scratch), and <a href="performance-baseline.html">docs/performance-baseline.html</a> (this phase's load-test findings, in full, dated).
+    </footer>
+  </main>
+</div>

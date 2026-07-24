@@ -1,0 +1,54 @@
+{
+  "title": "Load Testing (k6)",
+  "timezone": "utc",
+  "panels": [
+    {
+      "title": "Virtual users",
+      "type": "timeseries",
+      "targets": [{ "expr": "k6_vus", "legendFormat": "{{testid}}" }]
+    },
+    {
+      "title": "Request rate",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum(rate(k6_http_reqs_total[1m])) by (testid)", "legendFormat": "{{testid}}" }]
+    },
+    {
+      "title": "Unexpected errors (%) — 5xx / connection failures only, the real \"it broke\" signal",
+      "type": "timeseries",
+      "targets": [{ "expr": "100 * k6_unexpected_errors_rate", "legendFormat": "{{testid}}" }]
+    },
+    {
+      "title": "HTTP req failed (%) — includes expected 4xx (rate limiting, validation)",
+      "type": "timeseries",
+      "targets": [{ "expr": "100 * k6_http_req_failed_rate", "legendFormat": "{{testid}}" }]
+    },
+    {
+      "title": "Flow p95 latency by workload",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "k6_flow_browse_duration_p95", "legendFormat": "browse ({{testid}})" },
+        { "expr": "k6_flow_order_journey_duration_p95", "legendFormat": "order_journey ({{testid}})" },
+        { "expr": "k6_flow_repeat_login_duration_p95", "legendFormat": "repeat_login ({{testid}})" },
+        { "expr": "k6_flow_admin_ops_duration_p95", "legendFormat": "admin_ops ({{testid}})" }
+      ]
+    },
+    {
+      "title": "HTTP request duration p95 / p99 (overall)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "k6_http_req_duration_p95", "legendFormat": "p95 ({{testid}})" },
+        { "expr": "k6_http_req_duration_p99", "legendFormat": "p99 ({{testid}})" }
+      ]
+    },
+    {
+      "title": "Orders created / sec",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum(rate(k6_orders_created_total[1m])) by (testid)", "legendFormat": "{{testid}}" }]
+    },
+    {
+      "title": "Iterations / sec (overall throughput)",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum(rate(k6_iterations_total[1m])) by (testid)", "legendFormat": "{{testid}}" }]
+    }
+  ]
+}

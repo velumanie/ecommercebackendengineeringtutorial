@@ -1,0 +1,8 @@
+replicaCount: 3
+image: { repository: product-service, tag: latest }
+containerPort: 8082
+resources:
+  requests: { cpu: 250m, memory: 512Mi }
+  limits: { cpu: "1", memory: 1Gi }
+autoscaling: { minReplicas: 3, maxReplicas: 10, targetCPUUtilization: 70 }
+logLevel: INFO

@@ -1,0 +1,246 @@
+<meta charset="UTF-8">
+<title>E-Commerce Platform — Performance Baseline</title>
+<style>
+  :root{
+    --bg:#f6f5f2;
+    --bg-raised:#ffffff;
+    --ink:#1c2024;
+    --ink-dim:#5b6470;
+    --line:#dcd8d0;
+    --line-strong:#c3bdb2;
+    --accent:#3d5a99;
+    --accent-ink:#ffffff;
+    --accent-soft:#e7ecf6;
+    --code-bg:#f0eee9;
+    --ok:#3e7a4c;
+    --warn:#a86a1f;
+    --crit:#a8402f;
+    --shadow: 0 1px 2px rgba(28,32,36,.06), 0 6px 20px rgba(28,32,36,.05);
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161a;
+    --bg-raised:#1b1e23;
+    --ink:#e8e6e1;
+    --ink-dim:#9aa0a8;
+    --line:#2c3036;
+    --line-strong:#3c4149;
+    --accent:#7f9cd6;
+    --accent-ink:#0e1218;
+    --accent-soft:#232a38;
+    --code-bg:#101216;
+    --ok:#6fbf7f;
+    --warn:#d99a4e;
+    --crit:#e2695a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161a; --bg-raised:#1b1e23; --ink:#e8e6e1; --ink-dim:#9aa0a8;
+      --line:#2c3036; --line-strong:#3c4149; --accent:#7f9cd6; --accent-ink:#0e1218;
+      --accent-soft:#232a38; --code-bg:#101216; --ok:#6fbf7f; --warn:#d99a4e; --crit:#e2695a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family: Charter, 'Iowan Old Style', 'Georgia', 'Cambria', serif;
+    font-size:16.5px; line-height:1.6;
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  .eyebrow{
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    font-size:11.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--accent);
+    font-weight:600;
+  }
+  h1,h2,h3,h4{
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight:700; letter-spacing:-.01em; color:var(--ink); text-wrap:balance;
+  }
+  h1{ font-size:clamp(28px,4vw,42px); line-height:1.08; margin:.3em 0 .2em; letter-spacing:-.02em;}
+  h2{ font-size:24px; margin:0 0 4px; padding-top:2px; }
+  h3{ font-size:17px; margin:1.5em 0 .5em; }
+  h4{ font-size:14px; margin:1.3em 0 .4em; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700;}
+  p{ margin:.65em 0; max-width:72ch; color:var(--ink); }
+  a{ color:var(--accent); }
+  code{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:.88em; background:var(--code-bg); padding:.1em .35em; border-radius:4px; }
+  pre{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:13px; line-height:1.55; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; overflow-x:auto; }
+  pre code{ background:none; padding:0; }
+
+  .shell{ display:grid; grid-template-columns:230px minmax(0,1fr); gap:0; max-width:1240px; margin:0 auto; }
+  @media (max-width:980px){ .shell{ grid-template-columns:1fr; } .toc{ position:static !important; height:auto !important; border-right:none !important; border-bottom:1px solid var(--line); } }
+
+  .toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    border-right:1px solid var(--line); padding:28px 18px 40px 28px;
+  }
+  .toc .brand{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-weight:800; font-size:15px; letter-spacing:-.01em; margin-bottom:2px;}
+  .toc .brand small{ display:block; font-weight:500; color:var(--ink-dim); font-size:11.5px; margin-top:2px;}
+  .toc nav{ margin-top:22px; }
+  .toc a{ display:block; text-decoration:none; color:var(--ink-dim); font-size:13px; padding:5px 0; border-left:2px solid transparent; padding-left:10px; margin-left:-11px; }
+  .toc a:hover{ color:var(--ink); }
+  .toc .part-num{ font-family:ui-monospace,monospace; color:var(--accent); margin-right:6px; font-size:11.5px;}
+
+  main{ padding:44px 48px 120px; min-width:0; }
+  @media (max-width:640px){ main{ padding:28px 20px 90px; } }
+
+  header.hero{ max-width:880px; margin-bottom:22px; }
+  .stack-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+  .chip{ font-family:ui-monospace,monospace; font-size:11.5px; border:1px solid var(--line-strong); border-radius:20px; padding:4px 10px; color:var(--ink-dim); }
+
+  section.part{ max-width:900px; padding-top:48px; margin-top:48px; border-top:1px solid var(--line); scroll-margin-top:20px; }
+  section.part:first-of-type{ border-top:none; margin-top:32px; padding-top:0; }
+  .part-label{ display:flex; align-items:baseline; gap:10px; margin-bottom:2px;}
+  .part-label .num{ font-family:ui-monospace,monospace; font-size:13px; color:var(--accent); font-weight:700;}
+
+  table{ border-collapse:collapse; width:100%; margin:1em 0; font-size:13.5px; }
+  th,td{ text-align:left; padding:7px 11px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700; border-bottom:1px solid var(--line-strong); }
+  td.num, th.num{ text-align:right; font-variant-numeric:tabular-nums; font-family:ui-monospace,monospace; }
+  .table-wrap{ overflow-x:auto; border-radius:8px; }
+
+  .pill{ display:inline-block; font-family:ui-monospace,monospace; font-size:11px; padding:2px 8px; border-radius:20px; font-weight:600; }
+  .pill.ok{ background:color-mix(in srgb, var(--ok) 16%, transparent); color:var(--ok); }
+  .pill.warn{ background:color-mix(in srgb, var(--warn) 16%, transparent); color:var(--warn); }
+  .pill.crit{ background:color-mix(in srgb, var(--crit) 16%, transparent); color:var(--crit); }
+
+  .note{ border-left:3px solid var(--accent); background:var(--accent-soft); padding:10px 16px; border-radius:0 8px 8px 0; font-size:14px; margin:1em 0; }
+  .note p{ margin:.3em 0; }
+  .note.warn{ border-left-color:var(--warn); }
+  .note.crit{ border-left-color:var(--crit); }
+
+  .card-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:1.2em 0; }
+  .card{ background:var(--bg-raised); border:1px solid var(--line); border-radius:10px; padding:14px 16px; box-shadow:var(--shadow); }
+  .card .big{ font-family:ui-monospace,monospace; font-size:26px; font-weight:700; margin:2px 0; }
+  .card .big.ok{ color:var(--ok); }
+  .card .big.warn{ color:var(--warn); }
+  .card .big.crit{ color:var(--crit); }
+  .card .label{ font-size:12px; color:var(--ink-dim); }
+
+  ul,ol{ padding-left:1.3em; }
+  li{ margin:.3em 0; }
+
+  footer{ max-width:900px; margin-top:70px; padding-top:22px; border-top:1px solid var(--line); color:var(--ink-dim); font-size:13px; }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="brand">E-Commerce Platform<small>Performance Baseline</small></div>
+    <nav>
+      <a href="#methodology"><span class="part-num">01</span>Methodology</a>
+      <a href="#glance"><span class="part-num">02</span>Results at a Glance</a>
+      <a href="#compose"><span class="part-num">03</span>Docker Compose</a>
+      <a href="#k8s"><span class="part-num">04</span>Kubernetes</a>
+      <a href="#divergence"><span class="part-num">05</span>Why They Diverge</a>
+      <a href="#reproduce"><span class="part-num">06</span>Reproducing This</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Dated Snapshot — Not a Live View</div>
+      <h1>Performance Baseline</h1>
+      <p><strong>Captured 2026-07-23</strong>, one run of all three <a href="../loadtest/">load test scripts</a> (peak, spike, soak) against both deployment paths on the same laptop, back to back, nothing else competing for resources during either run. This is a point-in-time capture — see <a href="local-deployment.html#observability">Local Deployment Guide Part 6</a> for the live equivalent (a Grafana dashboard that updates as you run a test yourself). <strong>This date is load-bearing information, not decoration</strong> — the numbers below are only as trustworthy as how recently they were captured relative to the code; treat a stale-looking date with proportionate skepticism, and see <a href="#reproduce">Part 6</a> to regenerate them yourself.</p>
+      <div class="stack-chips">
+        <span class="chip">k6</span><span class="chip">Docker Compose</span><span class="chip">Kubernetes (Docker Desktop)</span>
+        <span class="chip">10 CPU / 24 GB node</span><span class="chip">macOS / Apple Silicon</span>
+      </div>
+    </header>
+
+    <section class="part" id="methodology">
+      <div class="part-label"><span class="num">01</span></div>
+      <h2>Methodology</h2>
+      <ul>
+        <li>One MacBook (Apple Silicon), Docker Desktop allocated 10 CPUs / ~24&nbsp;GB — the same machine running the full stack (7 services + 6 Postgres + Kafka + Redis + the full observability stack) <em>and</em> the k6 load generator itself. Nothing about these numbers isolates "the platform" from "the laptop it shares resources with" — that's deliberate; see <a href="#divergence">Part 5</a> for why the shared-resource reality is itself the interesting finding.</li>
+        <li>Docker Compose and Kubernetes were never running simultaneously during capture — each got the whole machine to itself, in turn, so one deployment's load test isn't skewed by the other's containers idling in the background. Every run used the scripts' default <code>BASE_URL</code> (<code>http://localhost:8080</code>) unchanged — Compose was torn down (<code>docker compose down</code>) before Kubernetes was port-forwarded onto that same native <code>:8080</code> (<code>./scripts/port-forward-persistent.sh</code>, no offset). This deliberately is <em>not</em> the <code>+10000</code>-offset dual-stack setup documented in <a href="local-deployment.html#urls">Local Deployment Guide Part 5</a> (that scheme exists so both stacks can be reached <em>at once</em>, which is exactly the confound this capture avoids by running them one at a time on the identical port instead) — worth stating plainly since the two schemes could otherwise be confused for each other.</li>
+        <li>Each script ran once, real profile (not <code>smoke</code>) — <code>peak-load.js</code> and <code>spike-load.js</code> at their full designed duration; <code>soak-load.js</code> shortened to a 4-minute hold (<code>SOAK_MINUTES=4</code>) instead of the 30-minute default, for practicality capturing this snapshot. A genuine soak run needs the full 30+ minutes to say anything about slow drift; treat the soak numbers here as "does it stay healthy for 4 minutes," not a real endurance result.</li>
+        <li><strong>Not a production capacity claim.</strong> Production runs on dedicated infrastructure with no laptop-sharing, real Postgres instances instead of single-node containers, and headroom this dev setup doesn't have. Read every number below as "what this exact stack does on this exact dev machine," full stop.</li>
+      </ul>
+    </section>
+
+    <section class="part" id="glance">
+      <div class="part-label"><span class="num">02</span></div>
+      <h2>Results at a Glance</h2>
+      <div class="card-grid">
+        <div class="card"><div class="label">Compose peak — unexpected errors</div><div class="big warn">17.08%</div><div class="label">crossed the 2% threshold above ~350 VUs</div></div>
+        <div class="card"><div class="label">K8s peak — unexpected errors</div><div class="big crit">22.13%</div><div class="label">gateway-service OOMKilled once mid-run</div></div>
+        <div class="card"><div class="label">Compose spike (400 VU burst)</div><div class="big ok">0.00%</div><div class="label">clean — rate limiter shed load as designed</div></div>
+        <div class="card"><div class="label">K8s spike (400 VU burst)</div><div class="big crit">51.66%</div><div class="label">same burst, same code — very different outcome</div></div>
+      </div>
+      <p>The full number set, all six runs:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Run</th><th class="num">Peak VUs</th><th class="num">Req/s</th><th class="num">Unexpected errors</th><th class="num">order_journey p95</th><th class="num">browse p95</th></tr></thead>
+        <tbody>
+          <tr><td>Compose · peak</td><td class="num">500</td><td class="num">636</td><td class="num"><span class="pill warn">17.08%</span></td><td class="num">1.65s</td><td class="num">26ms</td></tr>
+          <tr><td>Compose · spike</td><td class="num">400</td><td class="num">384</td><td class="num"><span class="pill ok">0.00%</span></td><td class="num">870ms</td><td class="num">25ms</td></tr>
+          <tr><td>Compose · soak (4m)</td><td class="num">30</td><td class="num">85</td><td class="num"><span class="pill ok">0.00%</span></td><td class="num">987ms</td><td class="num">20ms</td></tr>
+          <tr><td>K8s · peak</td><td class="num">500</td><td class="num">433</td><td class="num"><span class="pill crit">22.13%</span></td><td class="num">8.00s</td><td class="num">493ms</td></tr>
+          <tr><td>K8s · spike</td><td class="num">400</td><td class="num">319</td><td class="num"><span class="pill crit">51.66%</span></td><td class="num">6.01s</td><td class="num">218ms</td></tr>
+          <tr><td>K8s · soak (4m)</td><td class="num">30</td><td class="num">58</td><td class="num"><span class="pill ok">0.21%</span></td><td class="num">7.93s</td><td class="num">9ms</td></tr>
+        </tbody>
+      </table></div>
+      <p>Read <code>order_journey p95</code> next to <code>browse p95</code> in each row, not just down the column — that gap (26ms vs 1.65s on Compose peak; 493ms vs 8s on K8s peak) is the platform's own design showing through: <code>browse</code> is one read, no auth; <code>order_journey</code> is signup + login (both BCrypt) + order + get + list + cancel, several inter-service hops deep. It degrades first and worst under load by design, not by accident — see <a href="architecture.html#part6">architecture.html Part 6</a>.</p>
+    </section>
+
+    <section class="part" id="compose">
+      <div class="part-label"><span class="num">03</span></div>
+      <h2>Docker Compose</h2>
+      <p>Handles all three shapes reasonably well. No container resource limits exist in <code>docker-compose.yaml</code> — every service can burst to use as much of the host's CPU/memory as it needs, which is exactly why these numbers look better than the Kubernetes ones below on the same hardware: there's no artificial ceiling to hit before the host itself runs out.</p>
+      <ul>
+        <li><strong>Peak</strong>: clean through the 200-VU plateau (0% unexpected errors), real degradation starting during the ramp to 350 VUs (~4-6% errors at that plateau), climbing to 17.08% by the 500-VU plateau. This is the platform's actual breaking point on this machine — not a cliff, a gradual slope, which is what you want a peak test to show.</li>
+        <li><strong>Spike</strong>: 0.00% unexpected errors through a 15→400 VU instant burst. 30% of requests got an expected 4xx (mostly the auth rate limiter shedding load, exactly as designed) — the backend itself never actually broke.</li>
+        <li><strong>Soak (4m)</strong>: 0.00% unexpected errors, latency flat throughout the window. No signal of drift in this short a capture — see the methodology caveat above.</li>
+      </ul>
+    </section>
+
+    <section class="part" id="k8s">
+      <div class="part-label"><span class="num">04</span></div>
+      <h2>Kubernetes</h2>
+      <p>The same code, same k6 script, meaningfully worse outcomes across all three shapes — and two real pod restarts during capture, not just slow responses:</p>
+      <div class="note crit">
+        <p><strong><code>gateway-service</code> was OOMKilled once during the peak run</strong> (<code>kubectl describe pod</code>: <code>Reason: OOMKilled, Exit Code: 137</code>), restarted, recovered, and finished the run. Its Helm chart limit is 768Mi (<code>helm/ecommerce-platform/values-local.yaml</code>) — genuinely exceeded under the 500-VU plateau specifically, not a fluke.</p>
+      </div>
+      <div class="note warn">
+        <p><strong><code>user-service</code> restarted once during the soak run</strong> (<code>Exit Code: 143</code> — SIGTERM, most likely a liveness-probe timeout under BCrypt-driven CPU contention, not an OOM) — at only 30 VUs, the same load Compose handled at 0.00% unexpected errors and flat latency throughout.</p>
+      </div>
+      <ul>
+        <li><strong>Peak</strong>: 22.13% unexpected errors (worse than Compose's 17.08% on the identical ramp), <code>order_journey</code> p95 hit <strong>8.00s</strong> versus Compose's 1.65s.</li>
+        <li><strong>Spike</strong>: 51.66% unexpected errors on the exact same 400-VU burst Compose absorbed at 0.00%. This is the single largest divergence in the whole data set.</li>
+        <li><strong>Soak (4m)</strong>: unexpected errors stayed low (0.21%) but <code>order_journey</code> p95 was still 7.93s — at just 30 VUs. Low error rate with high latency is the signature of requests queuing behind CPU-throttled pods rather than being rejected outright.</li>
+      </ul>
+    </section>
+
+    <section class="part" id="divergence">
+      <div class="part-label"><span class="num">05</span></div>
+      <h2>Why They Diverge</h2>
+      <p>Every number above traces back to one structural difference, not six separate bugs: <strong>Kubernetes enforces the Helm chart's per-pod CPU/memory limits (<code>values-local.yaml</code>); Docker Compose enforces nothing.</strong> Under light load that difference is invisible — it's exactly what showed up in <code>docs/local-deployment.html</code>'s account of raising those limits after an earlier, smaller load test found request failures at just 5 concurrent VUs. That fix (roughly doubling every service's CPU/memory ceiling) was correctly sized for a <em>smoke</em>-scale run. It was not sized for real concurrent auth traffic at 30+ VUs — the soak result above is the proof: identical traffic shape, Compose flat and clean, Kubernetes queuing behind a 768Mi ceiling badly enough to restart a pod.</p>
+      <p>This is the platform correctly reflecting a genuine operational tradeoff, not a bug to silently patch: unbounded resources (Compose) make problems disappear locally that bounded resources (Kubernetes, and any real production cluster) will always surface. That's arguably the more valuable of the two deployment paths to load-test against, precisely because it doesn't hide this.</p>
+      <p><strong>Known follow-up, not fixed here</strong> — this snapshot is a report of what's true today, not a change: <code>helm/ecommerce-platform/values-local.yaml</code>'s resource limits (last tuned against a 5-VU smoke test) likely need another, larger pass specifically informed by these peak/spike numbers before Kubernetes should be trusted at real concurrency on this hardware.</p>
+    </section>
+
+    <section class="part" id="reproduce">
+      <div class="part-label"><span class="num">06</span></div>
+      <h2>Reproducing This</h2>
+      <p>Full instructions, including how to watch a run live in Grafana instead of waiting for a snapshot like this one: <a href="../loadtest/README.md">loadtest/README.md</a>. In short:</p>
+      <pre><code># Docker Compose
+docker compose up -d
+k6 run --env PROFILE=peak --summary-export=loadtest/results/compose-peak.json loadtest/peak-load.js
+k6 run --env PROFILE=spike --summary-export=loadtest/results/compose-spike.json loadtest/spike-load.js
+k6 run --env PROFILE=soak --env SOAK_MINUTES=4 --summary-export=loadtest/results/compose-soak.json loadtest/soak-load.js
+
+# docker compose down, THEN bring up Kubernetes (tilt ci) and
+# ./scripts/port-forward-persistent.sh with no offset — same native :8080 the
+# Compose runs above used, just at a different time. Don't run both stacks at once
+# on the +10000 offset ports for this: that's for reachability, not for keeping
+# a fair, uncontended comparison. Same three commands again, --tag testid=... changed.</code></pre>
+      <p>Raw structured output for every run behind this page's numbers: <code>loadtest/results/*.json</code> and matching <code>*.log</code> files, checked in alongside this doc.</p>
+    </section>
+
+    <footer>
+      Point-in-time performance snapshot for the six-service e-commerce platform. Pairs with <a href="architecture.html">docs/architecture.html</a> (why it's built this way) and <a href="local-deployment.html">docs/local-deployment.html</a> (how to run it) — regenerate this page whenever either the code or the conclusions here go stale.
+    </footer>
+  </main>
+</div>

@@ -1,0 +1,15 @@
+global:
+  imageTag: dev
+
+order-service:
+  replicaCount: 1
+  resources: { requests: { cpu: 100m, memory: 256Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 2 }
+  logLevel: DEBUG
+
+user-service: { replicaCount: 1, logLevel: DEBUG }
+product-service: { replicaCount: 1, logLevel: DEBUG }
+inventory-service: { replicaCount: 1, logLevel: DEBUG }
+payment-service: { replicaCount: 1, logLevel: DEBUG }
+notification-service: { replicaCount: 1, logLevel: DEBUG }
+gateway-service: { replicaCount: 1, logLevel: DEBUG }

@@ -1,0 +1,649 @@
+<meta charset="UTF-8">
+<title>E-Commerce Platform — Local Deployment Guide</title>
+<style>
+  :root{
+    --bg:#f6f5f2;
+    --bg-raised:#ffffff;
+    --ink:#1c2024;
+    --ink-dim:#5b6470;
+    --line:#dcd8d0;
+    --line-strong:#c3bdb2;
+    --accent:#3d5a99;
+    --accent-ink:#ffffff;
+    --accent-soft:#e7ecf6;
+    --code-bg:#f0eee9;
+    --ok:#3e7a4c;
+    --warn:#a86a1f;
+    --crit:#a8402f;
+    --shadow: 0 1px 2px rgba(28,32,36,.06), 0 6px 20px rgba(28,32,36,.05);
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161a;
+    --bg-raised:#1b1e23;
+    --ink:#e8e6e1;
+    --ink-dim:#9aa0a8;
+    --line:#2c3036;
+    --line-strong:#3c4149;
+    --accent:#7f9cd6;
+    --accent-ink:#0e1218;
+    --accent-soft:#232a38;
+    --code-bg:#101216;
+    --ok:#6fbf7f;
+    --warn:#d99a4e;
+    --crit:#e2695a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161a; --bg-raised:#1b1e23; --ink:#e8e6e1; --ink-dim:#9aa0a8;
+      --line:#2c3036; --line-strong:#3c4149; --accent:#7f9cd6; --accent-ink:#0e1218;
+      --accent-soft:#232a38; --code-bg:#101216; --ok:#6fbf7f; --warn:#d99a4e; --crit:#e2695a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family: Charter, 'Iowan Old Style', 'Georgia', 'Cambria', serif;
+    font-size:16.5px; line-height:1.6;
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  .eyebrow{
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    font-size:11.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--accent);
+    font-weight:600;
+  }
+  h1,h2,h3,h4{
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight:700; letter-spacing:-.01em; color:var(--ink); text-wrap:balance;
+  }
+  h1{ font-size:clamp(28px,4vw,42px); line-height:1.08; margin:.3em 0 .2em; letter-spacing:-.02em;}
+  h2{ font-size:26px; margin:0 0 4px; padding-top:2px; }
+  h3{ font-size:18px; margin:1.6em 0 .5em; }
+  h4{ font-size:15px; margin:1.4em 0 .4em; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700;}
+  p{ margin:.7em 0; max-width:74ch; color:var(--ink); }
+  a{ color:var(--accent); }
+  code{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:.88em; background:var(--code-bg); padding:.1em .35em; border-radius:4px; }
+  pre{ font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; font-size:13px; line-height:1.55; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; }
+  pre code{ background:none; padding:0; }
+
+  .shell{ display:grid; grid-template-columns:250px minmax(0,1fr); gap:0; max-width:1320px; margin:0 auto; }
+  @media (max-width:980px){ .shell{ grid-template-columns:1fr; } .toc{ position:static !important; height:auto !important; border-right:none !important; border-bottom:1px solid var(--line); } }
+
+  .toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    border-right:1px solid var(--line); padding:28px 18px 40px 28px;
+  }
+  .toc .brand{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-weight:800; font-size:15px; letter-spacing:-.01em; margin-bottom:2px;}
+  .toc .brand small{ display:block; font-weight:500; color:var(--ink-dim); font-size:11.5px; margin-top:2px;}
+  .toc nav{ margin-top:22px; }
+  .toc a{ display:block; text-decoration:none; color:var(--ink-dim); font-size:13px; padding:5px 0; border-left:2px solid transparent; padding-left:10px; margin-left:-11px; }
+  .toc a:hover{ color:var(--ink); }
+  .toc .part-num{ font-family:ui-monospace,monospace; color:var(--accent); margin-right:6px; font-size:11.5px;}
+
+  main{ padding:44px 48px 120px; min-width:0; }
+  @media (max-width:640px){ main{ padding:28px 20px 90px; } }
+
+  header.hero{ max-width:900px; margin-bottom:26px; }
+  .stack-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+  .chip{ font-family:ui-monospace,monospace; font-size:11.5px; border:1px solid var(--line-strong); border-radius:20px; padding:4px 10px; color:var(--ink-dim); }
+
+  section.part{ max-width:920px; padding-top:56px; margin-top:56px; border-top:1px solid var(--line); scroll-margin-top:20px; }
+  section.part:first-of-type{ border-top:none; margin-top:36px; padding-top:0; }
+  .part-label{ display:flex; align-items:baseline; gap:10px; margin-bottom:2px;}
+  .part-label .num{ font-family:ui-monospace,monospace; font-size:13px; color:var(--accent); font-weight:700;}
+
+  table{ border-collapse:collapse; width:100%; margin:1em 0; font-size:14px; }
+  caption{ caption-side:top; text-align:left; font-family:ui-monospace,monospace; font-size:11.5px; color:var(--ink-dim); margin-bottom:6px; letter-spacing:.03em; text-transform:uppercase;}
+  th,td{ text-align:left; padding:7px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); font-weight:700; border-bottom:1px solid var(--line-strong); }
+  td code{ white-space:nowrap; }
+  .table-wrap{ overflow-x:auto; border-radius:8px; }
+
+  .card-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin:1.2em 0; }
+  .card{ background:var(--bg-raised); border:1px solid var(--line); border-radius:10px; padding:14px 16px; box-shadow:var(--shadow); }
+  .card h4{ margin-top:0; }
+  .card p{ font-size:14px; margin:.3em 0 0; }
+
+  .pill{ display:inline-block; font-family:ui-monospace,monospace; font-size:11px; padding:2px 8px; border-radius:20px; font-weight:600; }
+  .pill.ok{ background:color-mix(in srgb, var(--ok) 16%, transparent); color:var(--ok); }
+  .pill.warn{ background:color-mix(in srgb, var(--warn) 16%, transparent); color:var(--warn); }
+  .pill.crit{ background:color-mix(in srgb, var(--crit) 16%, transparent); color:var(--crit); }
+
+  .mermaid{ background:var(--bg-raised); border:1px solid var(--line); border-radius:10px; padding:18px; box-shadow:var(--shadow); overflow-x:auto; }
+
+  .note{ border-left:3px solid var(--accent); background:var(--accent-soft); padding:10px 16px; border-radius:0 8px 8px 0; font-size:14px; margin:1em 0; }
+  .note p{ margin:.3em 0; }
+  .note.warn{ border-left-color:var(--warn); }
+
+  ul,ol{ padding-left:1.3em; }
+  li{ margin:.3em 0; }
+
+  .tree{ font-family:ui-monospace,monospace; font-size:12.5px; line-height:1.65; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:16px 20px; overflow-x:auto; white-space:pre; }
+
+  .steps{ counter-reset:step; list-style:none; padding-left:0; }
+  .steps > li{ counter-increment:step; position:relative; padding-left:2.4em; margin:1.1em 0; }
+  .steps > li::before{
+    content:counter(step); position:absolute; left:0; top:.05em;
+    width:1.6em; height:1.6em; border-radius:50%; background:var(--accent); color:var(--accent-ink);
+    font-family:ui-monospace,monospace; font-size:12.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .urlgrid a{ font-family:ui-monospace,monospace; font-size:13px; text-decoration:none; }
+  .urlgrid a:hover{ text-decoration:underline; }
+
+  footer{ max-width:920px; margin-top:80px; padding-top:24px; border-top:1px solid var(--line); color:var(--ink-dim); font-size:13px; }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="brand">E-Commerce Platform<small>Local Deployment Guide</small></div>
+    <nav>
+      <a href="#prereqs"><span class="part-num">01</span>Prerequisites</a>
+      <a href="#decision"><span class="part-num">02</span>Which Path?</a>
+      <a href="#compose"><span class="part-num">03</span>Docker Compose</a>
+      <a href="#k8s"><span class="part-num">04</span>Local Kubernetes</a>
+      <a href="#urls"><span class="part-num">05</span>Service URLs</a>
+      <a href="#observability"><span class="part-num">06</span>Observability URLs</a>
+      <a href="#postman"><span class="part-num">07</span>Postman Collection</a>
+      <a href="#checklist"><span class="part-num">08</span>Verification Checklist</a>
+      <a href="#obs-debug"><span class="part-num">09</span>Debugging Observability</a>
+      <a href="#troubleshooting"><span class="part-num">10</span>Troubleshooting</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Operations Guide</div>
+      <h1>Local Deployment Guide</h1>
+      <p>Two ways to run the whole platform on a laptop — <strong>Docker Compose</strong> (fastest, best for day-to-day development) and a <strong>local single-node Kubernetes cluster</strong> via Docker Desktop (closer to how it actually ships). Both end at the same place: a gateway on <code>:8080</code>, a working Postman collection, and dashboards you can actually look at. Pairs with <code>docs/architecture.html</code>, which explains <em>why</em> things are built this way — this document is just about getting it running.</p>
+      <div class="stack-chips">
+        <span class="chip">docker compose</span><span class="chip">Docker Desktop Kubernetes</span><span class="chip">Helm</span>
+        <span class="chip">Postman</span><span class="chip">Grafana</span><span class="chip">Prometheus</span><span class="chip">Jaeger</span><span class="chip">Kibana</span>
+      </div>
+    </header>
+
+    <!-- ===== PREREQUISITES ===== -->
+    <section class="part" id="prereqs">
+      <div class="part-label"><span class="num">01</span></div>
+      <h2>Prerequisites</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Tool</th><th>Needed for</th><th>Check</th></tr></thead>
+        <tbody>
+          <tr><td>Docker Desktop</td><td>Both paths — provides the Docker engine, and (once enabled) the local Kubernetes cluster</td><td><code>docker version</code></td></tr>
+          <tr><td>Docker Compose</td><td>Path A — bundled with Docker Desktop</td><td><code>docker compose version</code></td></tr>
+          <tr><td>kubectl</td><td>Path B</td><td><code>kubectl version --client</code></td></tr>
+          <tr><td>Helm 3</td><td>Path B</td><td><code>helm version</code></td></tr>
+          <tr><td>Tilt <em>(optional)</em></td><td>Path B — automates the whole manual sequence into <code>tilt up</code>, see <a href="#k8s">Part 4</a></td><td><code>tilt version</code> (<code>brew install tilt</code>)</td></tr>
+          <tr><td>Postman (or Newman CLI)</td><td>Exercising the API suite — see <a href="#postman">Part 7</a></td><td>—</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn">
+        <p><strong>Resource allocation matters — more for Kubernetes than Compose.</strong> The full stack is 7 services + 6 Postgres instances + Kafka + Redis, and — if you bring up observability too — Prometheus, Grafana, the OTel Collector, Jaeger, Elasticsearch, Logstash, and Kibana. In Docker Desktop's Settings → Resources, allocate at least <strong>6 CPUs and 10&nbsp;GB RAM</strong> as a floor before starting either path; if that's not available, skip the observability stack (see the callouts in Parts 3 and 4) and the platform still runs fine — you just lose dashboards/traces/log aggregation.</p>
+        <p>Kubernetes needs meaningfully more headroom than that floor once you run the full app <em>and</em> observability together: K8s schedules on declared resource <em>requests</em>, not actual usage, so it fails a pod at admission time (<code>FailedScheduling: Insufficient memory</code>) rather than letting it run tight the way Compose does. 10&nbsp;GB was enough to hit 99% memory-request allocation and start silently OOM-killing pods (no stack trace, just an abrupt exit) with everything running at once; bumping to ~24&nbsp;GB cleared it. If a pod dies with no application-level error in its logs right around startup, check <code>kubectl describe node docker-desktop | grep -A5 "Allocated resources"</code> before debugging application code — it may not be a bug at all.</p>
+        <p><code>helm/ecommerce-platform/values-local.yaml</code>'s per-service resource requests/limits were raised from an earlier, tighter baseline after <code>loadtest/peak-load.js</code> (see the file's own top comment for the specifics) found real request failures under concurrent load that traced to CPU/memory headroom, not bugs — most notably user-service under BCrypt. With the full app + data + observability stack up on this larger request footprint, <code>kubectl describe node</code> currently reports ~86% CPU / ~72% memory <em>requests</em> allocated on a 10-CPU/24&nbsp;GB node — the 24&nbsp;GB recommendation above still holds, just with less slack than it used to; don't go below it now.</p>
+      </div>
+    </section>
+
+    <!-- ===== DECISION ===== -->
+    <section class="part" id="decision">
+      <div class="part-label"><span class="num">02</span></div>
+      <h2>Which Path?</h2>
+      <div class="card-grid">
+        <div class="card"><h4>Docker Compose</h4><p>One command, no cluster concepts, fastest inner loop. Use this day to day. Go to <a href="#compose">Part 3</a>.</p></div>
+        <div class="card"><h4>Local Kubernetes</h4><p>Exercises the actual Helm charts and K8s manifests that ship to real clusters — probes, HPAs, ConfigMaps, Secrets, service discovery via CoreDNS. Use this to sanity-check a manifest/chart change before it goes anywhere real. Go to <a href="#k8s">Part 4</a>.</p></div>
+      </div>
+      <p>Both land on the exact same API surface (gateway on <code>localhost:8080</code>), so the <a href="#postman">Postman collection</a> and <a href="#checklist">verification checklist</a> work unmodified against either.</p>
+    </section>
+
+    <!-- ===== COMPOSE ===== -->
+    <section class="part" id="compose">
+      <div class="part-label"><span class="num">03</span></div>
+      <h2>Path A — Docker Compose</h2>
+      <ol class="steps">
+        <li>
+          <strong>Start everything.</strong>
+          <pre><code>docker compose up --build</code></pre>
+          <p>First run builds all 7 images (multi-stage Gradle builds — expect several minutes) and pulls Postgres/Kafka/Redis/observability images. Subsequent runs are fast (layer cache).</p>
+        </li>
+        <li>
+          <strong>Wait for health.</strong> Every service exposes a startup probe equivalent at <code>/actuator/health</code>; Flyway migrations (including the <a href="#checklist">seeded dev admin</a>) run automatically on boot. Watch for each service logging <code>Started ...Application</code>:
+          <pre><code>docker compose logs -f order-service user-service</code></pre>
+        </li>
+        <li>
+          <strong>Confirm the gateway is up.</strong>
+          <pre><code>curl -s http://localhost:8080/actuator/health | jq .status
+# "UP"</code></pre>
+        </li>
+        <li>
+          <strong>Run the smoke test.</strong> Import the <a href="#postman">Postman collection</a> and run <em>1. Admin Bootstrap</em> → <em>2. Customer Journey</em>, or jump to <a href="#checklist">Part 8</a> for the equivalent <code>curl</code> commands.
+        </li>
+        <li>
+          <strong>Tear down.</strong>
+          <pre><code>docker compose down          # stop, keep volumes (data survives restart)
+docker compose down -v       # stop and wipe all data — start completely fresh</code></pre>
+        </li>
+      </ol>
+      <div class="note">
+        <p><strong>Lighter footprint:</strong> the observability containers (<code>prometheus</code>, <code>grafana</code>, <code>jaeger</code>, <code>otel-collector</code>, <code>elasticsearch</code>, <code>logstash</code>, <code>kibana</code>, <code>filebeat</code>) are defined in the same <code>docker-compose.yaml</code>. To run just the application: <code>docker compose up --build gateway-service user-service product-service inventory-service order-service payment-service notification-service postgres-users postgres-products postgres-inventory postgres-orders postgres-payments postgres-notifications kafka redis</code> — Compose brings up each container's own dependencies automatically, so this list is really just "the app services," not the full dependency graph you have to reason about by hand.</p>
+      </div>
+    </section>
+
+    <!-- ===== K8S ===== -->
+    <section class="part" id="k8s">
+      <div class="part-label"><span class="num">04</span></div>
+      <h2>Path B — Local Kubernetes (Docker Desktop)</h2>
+
+      <div class="note">
+        <p><strong>Prefer one command?</strong> <code>Tiltfile</code> at the repo root automates every step below — image builds, namespaces, Postgres/Kafka/Redis, observability, the Helm release, and every port-forward (gateway, all 6 services, Grafana, Prometheus, Kibana, Jaeger, Elasticsearch) — behind <code>tilt up</code> (install: <code>brew install tilt</code>). It opens a live web UI showing build/deploy/log status per resource and rebuilds automatically on file changes. <code>tilt down</code> tears everything back down. <code>tilt ci</code> is the same thing as a one-shot: apply, wait for full health, exit — useful for scripting instead of the interactive UI. The manual steps below are what it's automating, worth knowing either way for debugging.</p>
+        <p>One thing to know if you go looking: Tilt renders the Helm chart itself (like <code>helm template</code>) rather than running a real <code>helm upgrade --install</code>, so <code>helm list</code> won't show an <code>ecommerce</code> release — Tilt reconciles the resulting objects through its own engine instead. Doesn't change anything functionally.</p>
+      </div>
+
+      <ol class="steps">
+        <li>
+          <strong>Enable Kubernetes.</strong> Docker Desktop → Settings → Kubernetes → check <em>Enable Kubernetes</em> → Apply &amp; Restart. Confirm the context:
+          <pre><code>kubectl config current-context
+# docker-desktop
+kubectl get nodes
+# NAME             STATUS   ROLES           AGE   VERSION
+# docker-desktop   Ready    control-plane   ...   v1.3x.x</code></pre>
+        </li>
+        <li>
+          <strong>Build images locally.</strong> Docker Desktop's Kubernetes shares the same image store as its Docker engine, so a local build is immediately usable by the cluster — no registry, no push.
+          <pre><code>./scripts/build-local-images.sh</code></pre>
+          <p>Builds all 7 images as <code>ecommerce-local/&lt;service&gt;:local</code>. This is what <code>helm/ecommerce-platform/values-local.yaml</code> points at, together with <code>imagePullPolicy: IfNotPresent</code> on every Deployment — without that policy, Kubernetes defaults <code>:latest</code>-tagged images to <code>Always</code> pull, which would fail immediately since <code>registry.company.com</code> (the production default) doesn't exist locally.</p>
+        </li>
+        <li>
+          <strong>Create namespaces and stateful dependencies.</strong>
+          <pre><code>kubectl apply -f kubernetes/namespace.yaml
+kubectl apply -f kubernetes/postgres/        # 6 StatefulSets, one per service database
+kubectl apply -f kubernetes/kafka.yaml       # 3-broker KRaft StatefulSet — order/inventory/payment/notification-service all need this up before they'll start cleanly
+kubectl apply -f kubernetes/redis.yaml
+kubectl apply -f kubernetes/observability/   # optional — see the resource note in Part 1</code></pre>
+          <p>Wait for Postgres to be ready before the next step (Flyway migrations run on app startup and will crash-loop-retry harmlessly if the DB isn't up yet, but it's faster to just wait):</p>
+          <pre><code>kubectl get pods -n data -w
+# ...wait until all postgres-* pods show 1/1 Running</code></pre>
+        </li>
+        <li>
+          <strong>Deploy the application via Helm.</strong>
+          <pre><code>helm upgrade --install ecommerce ./helm/ecommerce-platform \
+  -f ./helm/ecommerce-platform/values-local.yaml \
+  -n ecommerce --create-namespace</code></pre>
+          <pre><code>kubectl get pods -n ecommerce -w
+# ...wait until every pod is 1/1 Running (startup probes give each ~2.5 min before failing)</code></pre>
+        </li>
+        <li>
+          <strong>Reach the gateway.</strong> No LoadBalancer or Ingress controller running locally by default, so port-forward:
+          <pre><code>kubectl port-forward -n ecommerce svc/gateway-service 8080:80</code></pre>
+          <p>Leave that running in its own terminal. Everything else in this guide — the Postman collection, the <code>curl</code> checklist — now works exactly as it does against Compose, because it's the same <code>localhost:8080</code>.</p>
+          <p><strong>This breaks on every redeploy</strong> — <code>kubectl port-forward</code> pins to whichever pod is behind the Service at the moment it starts, and does not reconnect when that pod is replaced (a rolling update from <code>tilt ci</code>/<code>tilt up</code>, a crash-restart, anything). The tunnel just dies silently. For anything beyond a single quick check, use <code>scripts/port-forward-persistent.sh</code> instead — it wraps every port-forward (gateway, all 6 services, Grafana, Prometheus, Kibana, Jaeger, Elasticsearch) in a restart loop that reconnects within 2s whenever the tunnel drops, indefinitely, with no manual re-running required after a redeploy:</p>
+          <pre><code>./scripts/port-forward-persistent.sh</code></pre>
+          <p>Pass an offset (e.g. <code>./scripts/port-forward-persistent.sh 10000</code>) to run every local port at <code>+10000</code> instead — gateway on <code>:18080</code>, Grafana on <code>:13000</code>, etc. — so this stack is reachable <em>at the same time</em> as Docker Compose on its normal ports, without either one colliding on the other's port. Logs land in <code>/tmp/ecommerce-port-forwards/&lt;service&gt;.log</code>; <code>pkill -f 'kubectl port-forward'</code> stops everything the script started.</p>
+        </li>
+        <li>
+          <strong>Tear down.</strong>
+          <pre><code>helm uninstall ecommerce -n ecommerce
+kubectl delete -f kubernetes/observability/ -f kubernetes/redis.yaml -f kubernetes/postgres/ -f kubernetes/namespace.yaml</code></pre>
+        </li>
+      </ol>
+
+      <div class="note warn">
+        <p><strong>Common first-run failure:</strong> pods stuck in <code>ImagePullBackOff</code>. This means <code>values-local.yaml</code> wasn't passed to <code>helm upgrade</code> (so it's still trying to pull <code>registry.company.com/ecommerce/...</code>), or <code>build-local-images.sh</code> wasn't run first. <code>kubectl describe pod &lt;pod&gt; -n ecommerce</code> shows exactly which image it's trying to pull — compare that against <code>docker images | grep ecommerce-local</code>.</p>
+      </div>
+    </section>
+
+    <!-- ===== SERVICE URLS ===== -->
+    <section class="part" id="urls">
+      <div class="part-label"><span class="num">05</span></div>
+      <h2>Service URLs</h2>
+      <p>Identical for both paths once the Kubernetes gateway is port-forwarded (<a href="#k8s">Part 4, step 5</a>) — everything routes through the gateway on <code>:8080</code> in normal use. Direct per-service ports are for debugging: "is this the gateway's fault or the service's?"</p>
+
+      <h3>Through the gateway (what you'll actually use)</h3>
+      <div class="table-wrap"><table class="urlgrid">
+        <thead><tr><th>Route</th><th>URL</th><th>Backing service</th></tr></thead>
+        <tbody>
+          <tr><td>Auth</td><td><a href="http://localhost:8080/users/auth/login">http://localhost:8080/users/auth/login</a></td><td>user-service</td></tr>
+          <tr><td>Users</td><td><a href="http://localhost:8080/users">http://localhost:8080/users</a></td><td>user-service</td></tr>
+          <tr><td>Products</td><td><a href="http://localhost:8080/products">http://localhost:8080/products</a></td><td>product-service</td></tr>
+          <tr><td>Inventory</td><td><a href="http://localhost:8080/inventory">http://localhost:8080/inventory</a></td><td>inventory-service</td></tr>
+          <tr><td>Orders</td><td><a href="http://localhost:8080/orders">http://localhost:8080/orders</a></td><td>order-service</td></tr>
+          <tr><td>Payments</td><td><a href="http://localhost:8080/payments">http://localhost:8080/payments</a></td><td>payment-service</td></tr>
+          <tr><td>Notifications</td><td><a href="http://localhost:8080/notifications">http://localhost:8080/notifications</a></td><td>notification-service</td></tr>
+          <tr><td>Gateway health</td><td><a href="http://localhost:8080/actuator/health">http://localhost:8080/actuator/health</a></td><td>gateway-service</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Direct per-service (Compose: always on. Kubernetes: needs its own <code>port-forward</code>)</h3>
+      <div class="table-wrap"><table class="urlgrid">
+        <thead><tr><th>Service</th><th>URL</th><th>K8s port-forward</th></tr></thead>
+        <tbody>
+          <tr><td>gateway-service</td><td><a href="http://localhost:8080">http://localhost:8080</a></td><td><code>svc/gateway-service 8080:80</code></td></tr>
+          <tr><td>user-service</td><td><a href="http://localhost:8081">http://localhost:8081</a></td><td><code>svc/user-service 8081:80</code></td></tr>
+          <tr><td>product-service</td><td><a href="http://localhost:8082">http://localhost:8082</a></td><td><code>svc/product-service 8082:80</code></td></tr>
+          <tr><td>inventory-service</td><td><a href="http://localhost:8083">http://localhost:8083</a></td><td><code>svc/inventory-service 8083:80</code></td></tr>
+          <tr><td>order-service</td><td><a href="http://localhost:8084">http://localhost:8084</a></td><td><code>svc/order-service 8084:80</code></td></tr>
+          <tr><td>payment-service</td><td><a href="http://localhost:8085">http://localhost:8085</a></td><td><code>svc/payment-service 8085:80</code></td></tr>
+          <tr><td>notification-service</td><td><a href="http://localhost:8086">http://localhost:8086</a></td><td><code>svc/notification-service 8086:80</code></td></tr>
+        </tbody>
+      </table></div>
+      <p>Kubernetes port-forward pattern: <code>kubectl port-forward -n ecommerce svc/&lt;name&gt; &lt;local-port&gt;:80</code> (every Service listens on port 80 internally regardless of the container's own port — see each chart's <code>service.yaml</code>). This is the opposite convention from the observability/infra Services in <a href="#observability">Part 6</a> — see the note there for why, and how to check any Service's real port yourself instead of guessing. For anything beyond a single quick command, run <code>./scripts/port-forward-persistent.sh</code> (see <a href="#k8s">Part 4, step 5</a>) instead of one-off <code>kubectl port-forward</code> calls — plain ones silently die on every redeploy.</p>
+      <p><strong>No Swagger UI right now.</strong> springdoc-openapi 2.8.17 (the latest release) hasn't caught up to Spring Boot 4.1's package layout and crashes every service that carries it, so it's been removed for the moment — see <code>docs/architecture.html</code> Part 3. Use the <a href="#postman">Postman collection</a> or each service's controller source to see the actual API surface until an updated springdoc release lands.</p>
+
+      <h3>Infrastructure</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Component</th><th>Compose</th><th>Kubernetes port-forward</th></tr></thead>
+        <tbody>
+          <tr><td>Kafka</td><td><code>localhost:9092</code></td><td>not exposed by default — exec into a pod or add a port-forward to your Kafka Service/StatefulSet</td></tr>
+          <tr><td>Redis</td><td><code>localhost:6379</code></td><td><code>svc/redis 6379:6379</code> (namespace <code>ecommerce</code>)</td></tr>
+          <tr><td>postgres-orders (and the other 5)</td><td><code>localhost:5444</code> (see <code>docker-compose.yaml</code> for the other 5 ports)</td><td><code>svc/postgres-orders 5432:5432</code> (namespace <code>data</code>, headless — port-forward still works)</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ===== OBSERVABILITY URLS ===== -->
+    <section class="part" id="observability">
+      <div class="part-label"><span class="num">06</span></div>
+      <h2>Observability URLs</h2>
+      <p>Same story as service URLs — Compose exposes these directly; Kubernetes needs one <code>port-forward</code> per tool (namespace <code>observability</code>). Every command below is copy-pasteable as-is — the port-forward already matches what each URL expects. <code>./scripts/port-forward-persistent.sh</code> (<a href="#k8s">Part 4, step 5</a>) starts all five of these plus every app service in one shot, and — unlike the individual commands below — keeps reconnecting automatically through redeploys instead of silently dying.</p>
+      <div class="table-wrap"><table class="urlgrid">
+        <thead><tr><th>Tool</th><th>What it's for</th><th>Compose URL</th><th>Kubernetes</th></tr></thead>
+        <tbody>
+          <tr><td>Grafana</td><td>Dashboards — all 7 services pre-provisioned, no login setup needed</td><td><a href="http://localhost:3000">http://localhost:3000</a></td><td><code>kubectl port-forward -n observability svc/grafana 3000:3000</code> → <a href="http://localhost:3000">http://localhost:3000</a></td></tr>
+          <tr><td>Prometheus</td><td>Raw metrics + targets page (<code>/targets</code> — confirm every service shows <span class="pill ok">UP</span>)</td><td><a href="http://localhost:9090">http://localhost:9090</a></td><td><code>kubectl port-forward -n observability svc/prometheus 9090:9090</code> → <a href="http://localhost:9090">http://localhost:9090</a></td></tr>
+          <tr><td>Jaeger UI</td><td>Distributed traces — search by service name, e.g. <code>order-service</code></td><td><a href="http://localhost:16686">http://localhost:16686</a></td><td><code>kubectl port-forward -n observability svc/jaeger-query 16686:16686</code> → <a href="http://localhost:16686">http://localhost:16686</a></td></tr>
+          <tr><td>Kibana</td><td>Log search — Discover tab, filter on <code>correlationId</code></td><td><a href="http://localhost:5601">http://localhost:5601</a></td><td><code>kubectl port-forward -n observability svc/kibana 5601:5601</code> → <a href="http://localhost:5601">http://localhost:5601</a></td></tr>
+          <tr><td>Elasticsearch</td><td>Raw index API — usually only needed to sanity-check an index exists (<code>curl localhost:9200/_cat/indices</code>) before troubleshooting Kibana</td><td><a href="http://localhost:9200">http://localhost:9200</a></td><td><code>kubectl port-forward -n observability svc/elasticsearch 9200:9200</code> → <a href="http://localhost:9200">http://localhost:9200</a></td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="note">
+        <p><strong>How the port in each URL is actually decided — read this before adding a tool or wondering why a port-forward "doesn't match."</strong> It's tempting to assume the URL's port is just "whatever port the tool normally uses" — that happens to be true for every row in this table, but only by convention, not by rule, and this repo's own app services (<a href="#urls">Part 5</a>) intentionally break that convention. The actual rule:</p>
+        <ul>
+          <li><strong>Docker Compose:</strong> the URL's port is the <em>host</em> side of that container's <code>ports:</code> mapping in <code>docker-compose.yaml</code> (<code>"3000:3000"</code> for Grafana, etc.) — the left-hand number, not necessarily the container's internal port, though here they happen to be identical.</li>
+          <li><strong>Kubernetes:</strong> <code>kubectl port-forward svc/&lt;name&gt; &lt;local&gt;:&lt;remote&gt;</code> — <code>&lt;remote&gt;</code> must match that <strong>Service's own <code>spec.ports[].port</code> field</strong>, not the container's <code>containerPort</code>/the app's actual listening port, and not the Service's <code>targetPort</code> either if the two diverge. When in doubt, don't guess — ask the Service directly: <code>kubectl get svc -n observability grafana -o jsonpath='{.spec.ports[0].port}'</code>.</li>
+        </ul>
+        <p>Why this matters here specifically: <strong>every tool in this table uses <code>port: targetPort</code>, so its Service port and the app's real port are the same number</strong> — that's why <code>3000:3000</code>, <code>9090:9090</code>, etc. all look redundant. The app services in <a href="#urls">Part 5</a> do <em>not</em> follow that pattern — their Helm chart deliberately gives every Service <code>port: 80</code> (a Kubernetes/Helm convention: "a Service always answers on the standard HTTP port") regardless of which port the container inside actually listens on, so <code>gateway-service</code>'s port-forward is <code>8080:80</code>, not <code>8080:8080</code>. Two different, both internally consistent conventions, applied to two different categories of manifest in this same repo (raw YAML for observability/infra, a templated Helm chart for the app) — the failure mode if you assume one applies to the other is a port-forward that starts up looking fine and then every request just hangs or connection-refuses, because it's forwarding to a port nothing is actually listening on.</p>
+      </div>
+
+      <div class="note">
+        <p><strong>Kibana needs a one-time data view before Discover shows anything.</strong> Unlike Grafana's dashboards, nothing pre-provisions this. Create it once per fresh Elasticsearch volume:</p>
+        <pre><code>curl -X POST "http://localhost:5601/api/data_views/data_view" \
+  -H "kbn-xsrf: true" -H "Content-Type: application/json" \
+  -d '{"data_view": {"title": "ecommerce-*", "name": "E-Commerce Platform Logs", "timeFieldName": "@timestamp"}}'</code></pre>
+        <p>(Or in the UI: Kibana → Stack Management → Data Views → Create data view, index pattern <code>ecommerce-*</code>, time field <code>@timestamp</code>.)</p>
+      </div>
+      <p>Grafana ships with anonymous viewer access enabled locally (see <code>docker-compose.yaml</code> / <code>kubernetes/observability/grafana.yaml</code>) — no credentials needed for either path.</p>
+      <div class="note">
+        <p><strong>Load testing shows up here too.</strong> Prometheus's remote-write receiver is enabled specifically so <a href="../loadtest/README.md">a k6 run</a> can push its metrics straight in, alongside the app's own golden-signal dashboards — <em>E-Commerce Platform → Load Testing (k6)</em>. For real numbers without running anything yourself, see <a href="performance-baseline.html">docs/performance-baseline.html</a>, a dated snapshot comparing Compose against Kubernetes.</p>
+      </div>
+    </section>
+
+    <!-- ===== POSTMAN ===== -->
+    <section class="part" id="postman">
+      <div class="part-label"><span class="num">07</span></div>
+      <h2>Postman Collection</h2>
+      <p>Verified end to end via Newman against a real <code>docker compose up --build</code> stack: all 36 requests / 49 assertions across all 6 folders pass on a clean run.</p>
+      <p>Lives in <code>postman/</code>:</p>
+      <div class="tree">postman/
+├── ecommerce-platform.postman_collection.json
+├── local-docker-compose.postman_environment.json
+└── local-kubernetes.postman_environment.json</div>
+
+      <ol class="steps">
+        <li><strong>Import.</strong> Postman → <em>Import</em> → drag in all three files from <code>postman/</code>.</li>
+        <li><strong>Select an environment.</strong> Top-right dropdown → <em>Local - Docker Compose</em> or <em>Local - Kubernetes (port-forward)</em>. Both point at <code>http://localhost:8080</code> by default — the split exists so you can tell at a glance which stack a run was against, and so you have somewhere to change the URL if you switch to Ingress-based access later.</li>
+        <li><strong>Run the collection.</strong> Folders are numbered in run order:
+          <div class="table-wrap"><table>
+            <thead><tr><th>Folder</th><th>Runs as</th><th>Does</th></tr></thead>
+            <tbody>
+              <tr><td>1. Admin Bootstrap</td><td>seeded dev admin</td><td>Login, refresh the access token, create a product, stock it, create a real customer account</td></tr>
+              <tr><td>2. Customer Journey</td><td>the customer just created</td><td>Login, place an order, look it up, list "my orders", cancel it, log out, prove the revoked refresh token no longer works</td></tr>
+              <tr><td>3. Order Lifecycle</td><td>admin</td><td>Advance order status, attempt an invalid status jump (409), list all orders, confirm the email-notification event landed</td></tr>
+              <tr><td>4. Negative / RBAC Cases</td><td>mixed</td><td>Proves the security model — 403 for wrong role, 401 for no/invalid credentials, 409 for a bad reference or insufficient stock, 404 for a nonexistent order</td></tr>
+              <tr><td>5. Validation &amp; Pagination Edge Cases</td><td>admin / public</td><td>400 for a missing required field, 200-with-empty-content for a page past the end of the data</td></tr>
+              <tr><td>6. Direct Service Health</td><td>—</td><td>One <code>/actuator/health</code> hit per service, bypassing the gateway</td></tr>
+            </tbody>
+          </table></div>
+        </li>
+        <li><strong>Use Collection Runner for a one-click full pass:</strong> select the collection → <em>Run</em> → run all 6 folders top to bottom. Each request's <em>Tests</em> script feeds the next one (captures <code>accessToken</code>, <code>productId</code>, <code>customerId</code>, <code>orderId</code> into collection variables) — that's why order matters.</li>
+      </ol>
+      <div class="note">
+        <p><strong>Prefer the command line?</strong> The same collection runs headless via <a href="https://www.npmjs.com/package/newman">Newman</a>:</p>
+        <pre><code>npx newman run postman/ecommerce-platform.postman_collection.json \
+  -e postman/local-docker-compose.postman_environment.json</code></pre>
+      </div>
+    </section>
+
+    <!-- ===== CHECKLIST ===== -->
+    <section class="part" id="checklist">
+      <div class="part-label"><span class="num">08</span></div>
+      <h2>Verification Checklist</h2>
+      <p>Component-by-component, in dependency order. The <code>curl</code> commands are the manual equivalent of running the Postman collection — use them if you want to see exactly what's happening at each step, or don't have Postman handy. All assume the gateway is reachable at <code>localhost:8080</code> (<a href="#urls">Part 5</a>).</p>
+
+      <h3>1 — Infrastructure is up</h3>
+      <pre><code># Compose
+docker compose ps --format "table {{.Name}}\t{{.Status}}"
+
+# Kubernetes
+kubectl get pods -n data -n ecommerce -n observability</code></pre>
+      <p>Every pod/container should be <span class="pill ok">Running</span>/<span class="pill ok">healthy</span>. A service stuck restarting almost always means its database isn't ready yet or Flyway failed — check that service's logs first.</p>
+
+      <h3>2 — Gateway routes and JWT issuance work</h3>
+      <pre><code>curl -s http://localhost:8080/actuator/health
+# {"status":"UP"}
+
+curl -s -X POST http://localhost:8080/users/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}' | jq .
+# {"accessToken": "...", "refreshToken": "...", "expiresInSeconds": 900}</code></pre>
+      <p>That login only works because <code>user-service</code>'s <code>V1__init_users.sql</code> Flyway migration seeded a dev admin — this is the one piece of seed data every other check in this list depends on (see the note at the bottom of <code>user-service/src/main/resources/db/migration/V1__init_users.sql</code>).</p>
+
+      <h3>3 — Catalog, inventory, and the order flow end to end</h3>
+      <pre><code>TOKEN=$(curl -s -X POST http://localhost:8080/users/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"Admin@12345"}' | jq -r .accessToken)
+
+PRODUCT_ID=$(curl -s -X POST http://localhost:8080/products \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"sku":"SKU-CLI-001","name":"CLI Test Product","price":19.99}' | jq -r .id)
+
+curl -s -X POST http://localhost:8080/inventory/$PRODUCT_ID/stock \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"quantityOnHand": 25}'
+
+CUSTOMER=$(curl -s -X POST http://localhost:8080/users \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"email":"cli-customer@example.com","password":"Customer@12345","firstName":"CLI","lastName":"Tester","roles":["CUSTOMER"]}')
+CUSTOMER_ID=$(echo $CUSTOMER | jq -r .id)
+
+CUSTOMER_TOKEN=$(curl -s -X POST http://localhost:8080/users/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"cli-customer@example.com","password":"Customer@12345"}' | jq -r .accessToken)
+
+curl -s -X POST http://localhost:8080/orders \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" -H 'Content-Type: application/json' \
+  -d "{\"customerId\":\"$CUSTOMER_ID\",\"items\":[{\"productId\":\"$PRODUCT_ID\",\"quantity\":1}]}" | jq .
+# "status": "CONFIRMED"  <-  inventory reserved + payment authorized synchronously</code></pre>
+      <p>A <code>CONFIRMED</code> order here means: product-service, inventory-service, order-service, and payment-service all successfully talked to each other (order-service → inventory-service and order-service → payment-service, both over OpenFeign) in a single request.</p>
+
+      <h3>4 — Kafka + the async notification chain</h3>
+      <pre><code>curl -s "http://localhost:8080/notifications/emails?page=0&size=5" \
+  -H "Authorization: Bearer $TOKEN" | jq '.content[0]'</code></pre>
+      <p>A non-empty result confirms the full event chain: payment-service published <code>payment.completed</code> to Kafka → notification-service consumed it → wrote a row to <code>email_logs</code>. If this is empty but step 3 returned <code>CONFIRMED</code>, check Kafka connectivity and notification-service's consumer logs specifically — the order itself already succeeded, so the break is isolated to the async leg.</p>
+
+      <h3>5 — Metrics, traces, and logs are actually flowing</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Check</th><th>Where</th><th>Looking for</th></tr></thead>
+        <tbody>
+          <tr><td>Prometheus is scraping every service</td><td><a href="http://localhost:9090/targets">Prometheus → Status → Targets</a></td><td>All <code>ecommerce-services</code>/<code>kubernetes-pods</code> targets <span class="pill ok">UP</span></td></tr>
+          <tr><td>Grafana dashboards have data</td><td><a href="http://localhost:3000">Grafana</a> → <em>E-Commerce Platform</em> folder</td><td>Request-rate panels showing the traffic from step 3 (may take up to 15s — the scrape interval)</td></tr>
+          <tr><td>Traces for the order request exist</td><td><a href="http://localhost:16686">Jaeger</a> → Service <code>order-service</code> → Find Traces</td><td>A trace spanning gateway → order-service → inventory-service/payment-service</td></tr>
+          <tr><td>Structured logs are searchable</td><td><a href="http://localhost:5601">Kibana</a> → Discover</td><td>JSON log lines with a <code>correlationId</code> field; filter on the order's correlation ID (from the response headers of any request in step 3) to see its full cross-service log trail</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>6 — Security model actually enforces what it claims</h3>
+      <pre><code># CUSTOMER hitting an ADMIN-only endpoint -> 403
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/users \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+# 403
+
+# No token at all -> 401
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/orders
+# 401</code></pre>
+      <p>See <a href="#urls">Part 5</a> for what "401 vs 403" actually means here — it's not interchangeable, and both codes being distinct and correct is itself something worth checking (this platform migrated from a hand-rolled JWT filter to Spring Security's OAuth2 Resource Server specifically to get this right).</p>
+
+      <h3>7 — Idempotency, outbox, and brute-force protection actually work</h3>
+      <p>None of these show up in a happy-path smoke test — they only matter under retry/replay/attack conditions, so they're worth checking explicitly rather than assuming from the code that they're wired correctly.</p>
+      <pre><code># Same Idempotency-Key twice -> 201 then 200, identical order id, inventory reserved once
+KEY="verify-$(date +%s)"
+curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8080/orders \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" -H 'Content-Type: application/json' -H "Idempotency-Key: $KEY" \
+  -d "{\"customerId\":\"$CUSTOMER_ID\",\"items\":[{\"productId\":\"$PRODUCT_ID\",\"quantity\":1}]}"
+# 201
+curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8080/orders \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" -H 'Content-Type: application/json' -H "Idempotency-Key: $KEY" \
+  -d "{\"customerId\":\"$CUSTOMER_ID\",\"items\":[{\"productId\":\"$PRODUCT_ID\",\"quantity\":1}]}"
+# 200 — same order, not a second one
+
+# Outbox rows actually got published (run against the service's own Postgres container)
+docker exec ecommerce-platform-postgres-orders-1 psql -U orders_user -d orders_db \
+  -c "select event_type, published_at is not null as published from outbox_events order by created_at desc limit 3;"
+# every row should show published = t within ~500ms of being written (the poller's fixedDelay)
+
+# Six failed logins against the same account -> 423 on the sixth (five is the threshold)
+for i in 1 2 3 4 5 6; do
+  curl -s -o /dev/null -w "%{http_code} " -X POST http://localhost:8080/users/auth/login \
+    -H 'Content-Type: application/json' -d '{"email":"admin@example.com","password":"wrong"}'
+done; echo
+# 401 401 401 401 401 423
+
+# Security response headers present on every gateway response
+curl -sI http://localhost:8080/actuator/health | grep -iE "content-security-policy|referrer-policy|permissions-policy"</code></pre>
+      <p>The lockout resets after 15 minutes or on the next successful login (see <code>User.recordSuccessfulLogin()</code>) — if you actually trip it while testing, either wait it out or reset it directly: <code>UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE email = 'admin@example.com';</code> against <code>postgres-users-1</code>.</p>
+    </section>
+
+    <!-- ===== TROUBLESHOOTING ===== -->
+    <section class="part" id="obs-debug">
+      <div class="part-label"><span class="num">09</span></div>
+      <h2>Debugging Observability</h2>
+      <p>The observability stack is its own integration surface — a service can be perfectly healthy while its metrics, logs, or traces silently never arrive anywhere. Each pillar below has an actual place to check, a specific thing to look for, and the exact command to look with. All three pillars were broken at some point during this platform's own development for exactly the reasons listed here — this isn't hypothetical.</p>
+
+      <h3>Metrics not showing up (Prometheus / Grafana)</h3>
+      <ol class="steps">
+        <li>
+          <strong>Is Prometheus actually scraping the service?</strong> Check the targets API, not just the UI's <em>/targets</em> page (same data, easier to script):
+          <pre><code>curl -s http://localhost:9090/api/v1/targets | jq -r \
+  '.data.activeTargets[] | "\(.labels.instance) -> \(.health) \(.lastError)"'</code></pre>
+          <p><code>health: "down"</code> with <code>401</code> in the error means the target's <code>/actuator/prometheus</code> endpoint is rejecting Prometheus's (credential-less) scrape request — check that service's <code>SecurityConfig</code> has <code>/actuator/prometheus</code> in its <code>permitAll()</code> list alongside <code>/actuator/health/**</code>. This bit every service except gateway-service at one point (gateway has no Spring Security dependency at all, so it was never affected).</p>
+        </li>
+        <li>
+          <strong>Does the metric actually have data, not just a healthy target?</strong> A target can be <code>up</code> while a specific metric never populates:
+          <pre><code>curl -s -G http://localhost:9090/api/v1/query \
+  --data-urlencode 'query=jvm_memory_used_bytes{instance="order-service:8084"}' | jq</code></pre>
+          <p>Empty <code>result</code> array with a healthy target usually means the metric name or label doesn't exist yet (nothing's triggered it) rather than a pipeline break — try a metric that's always present, like <code>process_uptime_seconds</code>, to isolate "no data ever" from "no data for this specific metric."</p>
+        </li>
+        <li>
+          <strong>Metrics-over-OTLP specifically (not the Prometheus scrape path) never arriving, with <code>Failed to publish metrics to OTLP receiver (...url=http://localhost:4318...)</code> in a service's own logs:</strong> Boot 4.1 splits OpenTelemetry export into two independent properties — <code>management.opentelemetry.tracing.export.otlp.endpoint</code> for traces and <code>management.otlp.metrics.export.url</code> for metrics. They don't share one setting; fixing one and assuming the other follows is exactly how this shipped broken initially. Both need the same profile-scoped override (<code>otel-collector</code> for docker, <code>otel-collector.observability.svc.cluster.local</code> for kubernetes) in every service's <code>application.yml</code>.
+        </li>
+        <li>
+          <strong>Is Grafana's datasource actually wired to Prometheus?</strong>
+          <pre><code># Compose (anonymous):
+curl -s http://localhost:3000/api/datasources | jq
+
+# K8s (needs the admin password from the Secret):
+kubectl get secret grafana-secret -n observability -o jsonpath='{.data.admin-password}' | base64 -d
+curl -s http://localhost:3000/api/datasources -u admin:&lt;password-from-above&gt; | jq</code></pre>
+          <p>Should return one Prometheus datasource with <code>url: "http://prometheus:9090"</code>. A dashboard showing "No data" with a working datasource almost always means the panel's PromQL <code>application="..."</code> label doesn't match what that service actually reports — check via step 2 above with the panel's exact query.</p>
+        </li>
+      </ol>
+
+      <h3>Logs not showing up (Kibana / Logstash / Filebeat / Elasticsearch)</h3>
+      <ol class="steps">
+        <li>
+          <strong>Does Elasticsearch have the index at all?</strong>
+          <pre><code>curl -s "http://localhost:9200/_cat/indices/ecommerce-*?v"</code></pre>
+          <p>No rows at all (not even old/stale ones) means nothing has ever successfully indexed — go to step 2. Indices exist but stopped growing recently is a different problem (check Filebeat's own harvester state instead, see step 3).</p>
+        </li>
+        <li>
+          <strong>No indices — check Logstash's own logs for why it's rejecting or failing to write:</strong>
+          <pre><code>docker compose logs logstash --tail 50        # Compose
+kubectl logs -n observability deploy/logstash --tail 50   # K8s</code></pre>
+          <ul>
+            <li><code>Elasticsearch Unreachable</code> / <code>ResolutionFailure</code> — wrong hostname in <code>output.elasticsearch.hosts</code>. The Compose pipeline (<code>monitoring/logstash/pipeline.conf</code>) must use the bare Compose service name <code>elasticsearch</code>; the Kubernetes one (<code>kubernetes/observability/logstash.yaml</code>'s embedded config) uses the real <code>elasticsearch.observability.svc.cluster.local</code> FQDN. These are two separate config files with two separate correct answers — copying one into the other's context is the actual bug that shipped here once.</li>
+            <li><code>Badly formatted index, after interpolation still contains placeholder</code> — the index-name pattern references a field that doesn't exist on the log event. There is no plain <code>service</code> field on these logs. The real per-container/per-pod identifier is <code>docker.container.labels.com_docker_compose_service</code> under Compose (from Filebeat's Docker autodiscover) and <code>kubernetes.labels.app</code> under Kubernetes (from Filebeat's <code>add_kubernetes_metadata</code> processor) — genuinely different fields per environment, both wired into the two pipeline configs already.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Is Filebeat actually harvesting the container logs?</strong>
+          <pre><code>docker compose logs filebeat --tail 50 | grep -i "harvester\|error"
+kubectl logs -n observability -l app=filebeat --tail 50 | grep -i "harvester\|error"</code></pre>
+          <p>Look for <code>Harvester started</code> lines per container and any <code>Failed to connect to backoff(...logstash:5044)</code> errors — the latter is usually just Logstash not being up yet when Filebeat first tries (self-heals with backoff/retry), not a real problem unless it never recovers.</p>
+        </li>
+        <li>
+          <strong>Indexing is fine but Kibana Discover shows nothing:</strong> no data view exists — see the callout in <a href="#urls">Part 5</a>. This has to be created once per fresh Elasticsearch volume/deployment (Compose and K8s each have their own Elasticsearch, so this is per-environment, not global).
+        </li>
+      </ol>
+
+      <h3>Traces not showing up (Jaeger / OTel Collector)</h3>
+      <ol class="steps">
+        <li>
+          <strong>Is the OTel Collector actually running, not crash-looping?</strong>
+          <pre><code>docker compose ps otel-collector
+kubectl get pods -n observability -l app=otel-collector</code></pre>
+          <p>The telltale symptom of a broken collector image (this happened with a specific bad upstream tag, <code>otel/opentelemetry-collector-contrib:0.116.0</code>, on arm64) is <code>exec /otelcol-contrib: no such file or directory</code> in its logs immediately on start, with no further output. If you ever bump the collector's version and hit this again: it's the image, not your config — try the adjacent patch version (it worked going from <code>0.116.0</code> to <code>0.117.0</code> with zero config changes) before debugging anything else. Both <code>docker-compose.yaml</code> and <code>kubernetes/observability/otel-collector.yaml</code> pin the version independently — a version bump has to happen in both places.</p>
+        </li>
+        <li>
+          <strong>Is a service actually sending spans?</strong> Check that service's own logs for <code>Failed to export spans</code> — usually <code>UnknownHostException: otel-collector</code>, which just means the observability stack isn't running (harmless, the app keeps working) rather than a real misconfiguration, <em>unless</em> the collector is confirmed up per step 1, in which case check the service's <code>management.opentelemetry.tracing.export.otlp.endpoint</code> for the same profile-scoping mistake described in the Metrics section above.
+        </li>
+        <li>
+          <strong>Search Jaeger directly instead of guessing from the UI:</strong>
+          <pre><code>curl -s http://localhost:16686/api/services | jq
+curl -s "http://localhost:16686/api/traces?service=order-service&limit=5" | jq '.data | length'</code></pre>
+          <p>An empty services list means no traces have arrived at all (collector/export problem, see steps above); a populated services list but no traces for one specific service means that service isn't generating the traffic to trace yet — hit one of its endpoints and check again.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="part" id="troubleshooting">
+      <div class="part-label"><span class="num">10</span></div>
+      <h2>Troubleshooting</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Login returns <code>401</code> even with the seeded credentials</td><td><code>user-service</code>'s Flyway migrations didn't run (fresh volume + slow Postgres startup race), or you're hitting the wrong port</td><td>Check <code>docker compose logs user-service</code> / <code>kubectl logs -n ecommerce deploy/user-service</code> for <code>Migrating schema</code> lines; confirm you're on <code>:8080</code> (gateway), not a stale port-forward</td></tr>
+          <tr><td>Order creation returns <code>409 inventory-unavailable</code></td><td>No stock row exists for that product yet</td><td>Run the "Stock the product" request (Postman) or the <code>POST /inventory/{id}/stock</code> call (step 3 of the checklist) before ordering</td></tr>
+          <tr><td>K8s pods stuck <code>ImagePullBackOff</code></td><td>Deployed without <code>values-local.yaml</code>, or images weren't built locally first</td><td>See the callout in <a href="#k8s">Part 4</a>; re-run <code>helm upgrade</code> with <code>-f values-local.yaml</code></td></tr>
+          <tr><td>K8s pods <code>Pending</code> forever</td><td>Not enough CPU/memory allocated to Docker Desktop, or PVCs can't bind</td><td><code>kubectl describe pod &lt;pod&gt; -n ecommerce</code> shows the scheduler's reason; increase Docker Desktop's resource allocation (<a href="#prereqs">Part 1</a>) or skip <code>kubernetes/observability/</code> to free up headroom</td></tr>
+          <tr><td>Postgres StatefulSets never go <code>Running</code></td><td>PVC stuck <code>Pending</code></td><td><code>kubectl get pvc -n data</code> — Docker Desktop ships a default <code>hostpath</code> StorageClass, so this is usually a resource-pressure issue, not a missing StorageClass</td></tr>
+          <tr><td>Prometheus target shows <code>DOWN</code> for a service</td><td>Missing/mismatched <code>prometheus.io/*</code> pod annotations, or the service crashed after being scraped once</td><td><code>kubectl get pod &lt;pod&gt; -n ecommerce -o yaml | grep prometheus.io</code> — every Deployment should carry <code>scrape: "true"</code>, the right <code>port</code>, and <code>path: /actuator/prometheus</code></td></tr>
+          <tr><td>Everything 500s with no clear pattern</td><td>Shared <code>JWT_SECRET</code> mismatch between services (each reads it from its own Secret/ConfigMap)</td><td>Every service must resolve the <em>same</em> <code>JWT_SECRET</code> value — in Helm, override it once via <code>--set-string</code> or a shared values file rather than editing each subchart's default independently</td></tr>
+          <tr><td>Login/token issuance throws <code>WeakKeyException</code> or <code>SignatureException</code> about HS512 key size</td><td>A custom <code>JWT_SECRET</code> override is shorter than 64 bytes — HS512 requires a key <code>&gt;=</code> 512 bits (RFC 7518 §3.2), and jjwt enforces it strictly</td><td>Use a 64+ character secret. The shipped defaults in <code>docker-compose.yaml</code> and each service's <code>application.yml</code> already satisfy this — this only bites if you supply your own, shorter value</td></tr>
+          <tr><td>order-service returns <code>500</code> instead of the expected <code>409</code>/<code>402</code> for a bad reference or declined payment</td><td>A Feign client's <code>fallbackFactory</code> silently isn't being invoked — <code>spring.cloud.openfeign.circuitbreaker.enabled</code> (not the older <code>feign.circuitbreaker.enabled</code>) must be <code>true</code>, and a <code>CircuitBreakerFactory</code> bean must exist</td><td>Check order-service logs for the raw <code>FeignException</code> reaching <code>GlobalExceptionHandler</code>'s generic handler instead of a mapped domain exception; see <code>docs/architecture.html</code> Part 18 for the exact property key and the Spring Cloud 2025.1.2 dependency exclusion this needs</td></tr>
+          <tr><td>Kafka consumer never picks up events</td><td>Consumer group offset stuck from a previous run with different message shapes</td><td><code>docker compose down -v</code> (Compose) or delete/re-create the Kafka pod's PVC (K8s) for a clean slate</td></tr>
+          <tr><td>Kibana Discover shows nothing (or errors with no data view)</td><td>Either no data view exists yet, or a Logstash pipeline misconfiguration</td><td>See <a href="#obs-debug">Part 9</a> for the full "logs not showing up" walkthrough</td></tr>
+          <tr><td>K8s: gateway-service crash-loops on startup with <code>Failed to bind properties under 'spring.data.redis.port' to int</code> / a <code>NumberFormatException</code> mentioning <code>tcp://</code></td><td>Kubernetes auto-injects a <code>REDIS_PORT</code> env var (Docker-links format, e.g. <code>tcp://10.x.x.x:6379</code>) into every pod in the same namespace as a Service literally named <code>redis</code> — it collides with gateway-service's own <code>${REDIS_PORT:6379}</code> placeholder, which picks up the colliding value instead of a plain port number</td><td>Already fixed by pinning <code>spring.data.redis.port: 6379</code> explicitly in gateway-service's <code>kubernetes</code> profile instead of relying on the env-var placeholder — if you rename the Redis Service or add a new one, re-check for this same collision pattern on any app-level env var that matches <code>&lt;SERVICE_NAME&gt;_PORT</code>/<code>_SERVICE_HOST</code></td></tr>
+          <tr><td>K8s: <code>kafka-broker-0</code> stuck <code>CrashLoopBackOff</code> and never joined by <code>kafka-broker-1</code>/<code>-2</code></td><td>StatefulSet deadlock — default <code>OrderedReady</code> pod management creates pod 1 only after pod 0 is <code>Ready</code>, but pod 0 can never become <code>Ready</code> without 2 peers to form Raft quorum with; separately, the headless Service must publish DNS for not-yet-ready pods or the brokers can't resolve each other during that same bootstrap race</td><td>Already fixed in <code>kubernetes/kafka.yaml</code> via <code>podManagementPolicy: Parallel</code> (StatefulSet) and <code>publishNotReadyAddresses: true</code> (Service) — if this recurs after editing that file, check both settings survived the edit; <code>kubectl logs -n data kafka-broker-0</code> showing <code>UnknownHostException: kafka-broker-1...</code> confirms it's the DNS half specifically</td></tr>
+          <tr><td>gateway-service fails to start with <code>APPLICATION FAILED TO START</code> / <code>required a single bean, but 2 were found: userKeyResolver, ipKeyResolver</code></td><td>Spring Cloud Gateway's <code>RequestRateLimiterGatewayFilterFactory</code> autowires one default <code>KeyResolver</code> bean (used when a route doesn't name one via <code>key-resolver</code> SpEL) — adding a second <code>KeyResolver</code> bean without <code>@Primary</code> makes that autowiring ambiguous and fails <code>ApplicationContext</code> startup outright, even though every route in <code>application.yml</code> does specify its resolver explicitly</td><td>Already fixed: <code>userKeyResolver</code> in <code>gateway-service/config/RateLimiterConfig.java</code> is marked <code>@Primary</code> — if you add a third <code>KeyResolver</code> (another route-specific one), it doesn't need <code>@Primary</code> as long as exactly one bean overall carries it</td></tr>
+          <tr><td>Newman's "At least one email was logged" assertion fails on the very first run after <code>docker compose down -v &amp;&amp; up -d --build</code></td><td>Cold-start race between the outbox poller's first tick, Kafka consumer group formation, and notification-service's own startup — nothing is actually broken, the async chain (outbox → Kafka → consumer) just hasn't caught up yet on a stack that's seconds old</td><td>Re-run the collection; this has never failed twice in a row in this project's own testing. If it does fail twice, that's a real regression — check notification-service logs for consumer errors, not a flake</td></tr>
+          <tr><td>A K8s port-forward that was working suddenly connection-refuses, with no error printed anywhere obvious</td><td><code>kubectl port-forward</code> pins to one specific pod at start time and never reconnects when that pod is replaced — any redeploy (<code>tilt ci</code>, <code>tilt up</code> after a code change, <code>kubectl rollout restart</code>) or even just a crash-restart kills the tunnel silently. This is normal <code>kubectl</code> behavior, not a bug in this platform</td><td>Use <a href="#k8s"><code>scripts/port-forward-persistent.sh</code></a> instead of a bare <code>kubectl port-forward</code> — it auto-reconnects within 2s of any drop, indefinitely. If you're already using it and a tunnel still looks dead, check <code>/tmp/ecommerce-port-forwards/&lt;service&gt;.log</code> for repeated immediate failures (that points at a real problem — e.g. the Service itself is gone) rather than the normal one-line "died, reconnecting" you'd see for a single pod replacement</td></tr>
+        </tbody>
+      </table></div>
+      <p>For anything not covered here: <a href="#obs-debug">Part 9</a> covers observability-pipeline issues specifically; <code>docs/architecture.html</code> Part 20 has the broader production-readiness checklist, and Part 9/10 there explain the observability/logging design this guide's checks are built around.</p>
+    </section>
+
+    <footer>
+      Local deployment reference for the six-service e-commerce platform. See <code>docs/architecture.html</code> for the design rationale behind every choice this guide walks you through running.
+    </footer>
+  </main>
+</div>
+
+<!--
+  Same dual-context note as docs/architecture.html: this file is meant to be readable
+  both as a static HTML file and through a host that renders content itself. Nothing on
+  this page needs Mermaid, so there's no loader script here.
+-->

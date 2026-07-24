@@ -1,0 +1,27 @@
+apiVersion: v2
+name: ecommerce-platform
+description: Umbrella chart for the e-commerce microservices platform
+version: 1.0.0
+appVersion: "1.0.0"
+dependencies:
+  - name: gateway-service
+    version: 1.0.0
+    repository: "file://charts/gateway-service"
+  - name: user-service
+    version: 1.0.0
+    repository: "file://charts/user-service"
+  - name: product-service
+    version: 1.0.0
+    repository: "file://charts/product-service"
+  - name: inventory-service
+    version: 1.0.0
+    repository: "file://charts/inventory-service"
+  - name: order-service
+    version: 1.0.0
+    repository: "file://charts/order-service"
+  - name: payment-service
+    version: 1.0.0
+    repository: "file://charts/payment-service"
+  - name: notification-service
+    version: 1.0.0
+    repository: "file://charts/notification-service"

@@ -1,0 +1,40 @@
+{
+  "title": "product-service — golden signals",
+  "timezone": "utc",
+  "panels": [
+    {
+      "title": "Request rate",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"product-service\"}[5m])) by (uri, method)" }]
+    },
+    {
+      "title": "Error rate (%)",
+      "type": "timeseries",
+      "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"product-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"product-service\"}[5m]))" }]
+    },
+    {
+      "title": "p50 / p95 / p99 latency",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"product-service\"}[5m])) by (le))" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"product-service\"}[5m])) by (le))" },
+        { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"product-service\"}[5m])) by (le))" }
+      ]
+    },
+    {
+      "title": "JVM heap used",
+      "type": "timeseries",
+      "targets": [{ "expr": "jvm_memory_used_bytes{application=\"product-service\",area=\"heap\"}" }]
+    },
+    {
+      "title": "HikariCP active connections",
+      "type": "timeseries",
+      "targets": [{ "expr": "hikaricp_connections_active{application=\"product-service\"}" }]
+    },
+    {
+      "title": "Pod replica count (read-heavy, highest HPA ceiling)",
+      "type": "timeseries",
+      "targets": [{ "expr": "kube_deployment_status_replicas{deployment=\"product-service\",namespace=\"ecommerce\"}" }]
+    }
+  ]
+}

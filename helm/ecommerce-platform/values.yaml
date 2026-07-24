@@ -1,0 +1,61 @@
+# Shared defaults every environment values file overrides selectively.
+global:
+  namespace: ecommerce
+  imageRegistry: registry.company.com/ecommerce
+  imageTag: latest
+
+order-service:
+  replicaCount: 3
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  autoscaling: { minReplicas: 3, maxReplicas: 10, targetCPUUtilization: 70 }
+  logLevel: INFO
+
+user-service:
+  replicaCount: 2
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  autoscaling: { minReplicas: 2, maxReplicas: 5, targetCPUUtilization: 70 }
+  logLevel: INFO
+
+product-service:
+  replicaCount: 3
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  autoscaling: { minReplicas: 3, maxReplicas: 10, targetCPUUtilization: 70 }
+  logLevel: INFO
+
+inventory-service:
+  replicaCount: 2
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  autoscaling: { minReplicas: 2, maxReplicas: 6, targetCPUUtilization: 70 }
+  logLevel: INFO
+
+payment-service:
+  replicaCount: 2
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  autoscaling: { minReplicas: 2, maxReplicas: 6, targetCPUUtilization: 70 }
+  logLevel: INFO
+
+notification-service:
+  replicaCount: 2
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  autoscaling: { minReplicas: 2, maxReplicas: 5, targetCPUUtilization: 70 }
+  logLevel: INFO
+
+gateway-service:
+  replicaCount: 3
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 1Gi }
+  autoscaling: { minReplicas: 3, maxReplicas: 10, targetCPUUtilization: 70 }
+  logLevel: INFO

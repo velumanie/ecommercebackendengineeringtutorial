@@ -1,0 +1,70 @@
+# For a single-node local Kubernetes cluster (Docker Desktop's built-in cluster, kind,
+# minikube with the docker driver) — points at images built locally with
+# scripts/build-local-images.sh instead of registry.company.com, and trims every
+# service to one replica / dev-sized resource requests so the whole platform fits on a
+# laptop. See docs/local-deployment.html for the full walkthrough.
+#
+# Resource requests/limits below were bumped from an earlier, tighter baseline (100m/256Mi
+# request, 500m/512Mi limit, uniform across all 7) after loadtest/peak-load.js against this
+# exact chart found real request failures under concurrent load that traced back to CPU/memory
+# headroom, not application bugs: user-service and order-service were both sitting at 60-78%
+# of their old 512Mi memory limit at idle right after a 5-VU smoke run, and BCrypt (strength
+# 12, on every login/signup) is deliberately CPU-expensive — a single hash already took ~700ms
+# with zero concurrent load. See the gateway's resilience4j.timelimiter.instances.userServiceCB
+# override (gateway-service/src/main/resources/application.yml) for the companion fix on the
+# caller side; this is the callee-side fix; both mattered.
+global:
+  namespace: ecommerce
+  imageRegistry: ecommerce-local
+  imageTag: local
+
+order-service:
+  replicaCount: 1
+  # Hub service: synchronous Feign calls to inventory-service and payment-service on the
+  # request path, plus the outbox poller running continuously in the background — busiest
+  # service in the platform, sized accordingly.
+  resources: { requests: { cpu: 250m, memory: 384Mi }, limits: { cpu: 1000m, memory: 768Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 1 }
+  logLevel: DEBUG
+
+user-service:
+  replicaCount: 1
+  # The empirically-proven bottleneck (see note above) — BCrypt strength 12 is CPU-bound, not
+  # memory-bound, so this gets the largest CPU limit of any service here despite being one of
+  # the smaller ones by request volume.
+  resources: { requests: { cpu: 250m, memory: 384Mi }, limits: { cpu: 1500m, memory: 768Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 1 }
+  logLevel: DEBUG
+
+product-service:
+  replicaCount: 1
+  resources: { requests: { cpu: 200m, memory: 384Mi }, limits: { cpu: 1000m, memory: 768Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 1 }
+  logLevel: DEBUG
+
+inventory-service:
+  replicaCount: 1
+  resources: { requests: { cpu: 200m, memory: 384Mi }, limits: { cpu: 1000m, memory: 768Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 1 }
+  logLevel: DEBUG
+
+payment-service:
+  replicaCount: 1
+  # Also runs the outbox poller (see order-service) alongside request traffic.
+  resources: { requests: { cpu: 200m, memory: 384Mi }, limits: { cpu: 1000m, memory: 768Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 1 }
+  logLevel: DEBUG
+
+notification-service:
+  replicaCount: 1
+  resources: { requests: { cpu: 200m, memory: 384Mi }, limits: { cpu: 1000m, memory: 768Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 1 }
+  logLevel: DEBUG
+
+gateway-service:
+  replicaCount: 1
+  # Every request from every load-test VU passes through here first — proxying, rate
+  # limiting, JWT validation, and now also every circuit breaker's book-keeping.
+  resources: { requests: { cpu: 250m, memory: 384Mi }, limits: { cpu: 1000m, memory: 768Mi } }
+  autoscaling: { minReplicas: 1, maxReplicas: 1 }
+  logLevel: DEBUG

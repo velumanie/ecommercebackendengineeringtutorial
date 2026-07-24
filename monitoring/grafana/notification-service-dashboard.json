@@ -1,0 +1,39 @@
+{
+  "title": "notification-service — golden signals",
+  "timezone": "utc",
+  "panels": [
+    {
+      "title": "Request rate (admin log-query API)",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application=\"notification-service\"}[5m])) by (uri, method)" }]
+    },
+    {
+      "title": "Error rate (%)",
+      "type": "timeseries",
+      "targets": [{ "expr": "100 * sum(rate(http_server_requests_seconds_count{application=\"notification-service\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"notification-service\"}[5m]))" }]
+    },
+    {
+      "title": "Kafka consumer lag (payment-events, group=notification-service)",
+      "type": "timeseries",
+      "targets": [{ "expr": "kafka_consumer_lag_records{application=\"notification-service\",topic=\"payment-events\"}" }]
+    },
+    {
+      "title": "Email send outcome (sent vs. failed)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "sum(rate(email_send_total{application=\"notification-service\",status=\"SENT\"}[5m]))" },
+        { "expr": "sum(rate(email_send_total{application=\"notification-service\",status=\"FAILED\"}[5m]))" }
+      ]
+    },
+    {
+      "title": "JVM heap used",
+      "type": "timeseries",
+      "targets": [{ "expr": "jvm_memory_used_bytes{application=\"notification-service\",area=\"heap\"}" }]
+    },
+    {
+      "title": "HikariCP active connections",
+      "type": "timeseries",
+      "targets": [{ "expr": "hikaricp_connections_active{application=\"notification-service\"}" }]
+    }
+  ]
+}

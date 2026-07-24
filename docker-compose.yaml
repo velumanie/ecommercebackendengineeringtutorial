@@ -1,0 +1,223 @@
+name: ecommerce-platform
+
+services:
+  postgres-users:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: users_db
+      POSTGRES_USER: users_user
+      POSTGRES_PASSWORD: users_pass
+    ports: ["5441:5432"]
+    volumes: ["pg-users:/var/lib/postgresql/data"]
+
+  postgres-products:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: products_db
+      POSTGRES_USER: products_user
+      POSTGRES_PASSWORD: products_pass
+    ports: ["5442:5432"]
+    volumes: ["pg-products:/var/lib/postgresql/data"]
+
+  postgres-inventory:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: inventory_user
+      POSTGRES_PASSWORD: inventory_pass
+    ports: ["5443:5432"]
+    volumes: ["pg-inventory:/var/lib/postgresql/data"]
+
+  postgres-orders:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: orders_db
+      POSTGRES_USER: orders_user
+      POSTGRES_PASSWORD: orders_pass
+    ports: ["5444:5432"]
+    volumes: ["pg-orders:/var/lib/postgresql/data"]
+
+  postgres-payments:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: payments_db
+      POSTGRES_USER: payments_user
+      POSTGRES_PASSWORD: payments_pass
+    ports: ["5445:5432"]
+    volumes: ["pg-payments:/var/lib/postgresql/data"]
+
+  postgres-notifications:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: notifications_db
+      POSTGRES_USER: notifications_user
+      POSTGRES_PASSWORD: notifications_pass
+    ports: ["5446:5432"]
+    volumes: ["pg-notifications:/var/lib/postgresql/data"]
+
+  kafka:
+    image: apache/kafka:3.8.0
+    ports: ["9092:9092"]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  user-service:
+    build: { context: ., dockerfile: user-service/Dockerfile }
+    depends_on: [postgres-users]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_PASSWORD: users_pass
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8081:8081"]
+
+  product-service:
+    build: { context: ., dockerfile: product-service/Dockerfile }
+    depends_on: [postgres-products]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_PASSWORD: products_pass
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8082:8082"]
+
+  inventory-service:
+    build: { context: ., dockerfile: inventory-service/Dockerfile }
+    depends_on: [postgres-inventory, kafka]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_PASSWORD: inventory_pass
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8083:8083"]
+
+  order-service:
+    build: { context: ., dockerfile: order-service/Dockerfile }
+    depends_on: [postgres-orders, kafka, inventory-service, payment-service]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_PASSWORD: orders_pass
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8084:8084"]
+
+  payment-service:
+    build: { context: ., dockerfile: payment-service/Dockerfile }
+    depends_on: [postgres-payments, kafka]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_PASSWORD: payments_pass
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8085:8085"]
+
+  notification-service:
+    build: { context: ., dockerfile: notification-service/Dockerfile }
+    depends_on: [postgres-notifications, kafka]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_PASSWORD: notifications_pass
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8086:8086"]
+
+  gateway-service:
+    build: { context: ., dockerfile: gateway-service/Dockerfile }
+    depends_on: [user-service, product-service, inventory-service, order-service, payment-service, redis]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      REDIS_HOST: redis
+      JWT_SECRET: local-dev-secret-do-not-use-in-production-0123456789-extended-for-hs512
+    ports: ["8080:8080"]
+
+  # ---- Observability & logging stack (Part 9/10) ----
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.117.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./monitoring/otel-collector-config-docker.yaml:/etc/otel-collector-config.yaml:ro
+    ports: ["4317:4317", "4318:4318"]
+    depends_on: [jaeger]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.65.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports: ["16686:16686"]
+
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # Lets k6 push load-test metrics straight in via --out experimental-prometheus-rw
+      # (see loadtest/README.md) so a run shows up next to the app's own golden-signal
+      # dashboards instead of only existing as terminal output that vanishes after the run.
+      - --web.enable-remote-write-receiver
+    volumes:
+      - ./monitoring/prometheus-docker.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prom-data:/prometheus
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.16.1
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes: ["es-data:/usr/share/elasticsearch/data"]
+    ports: ["9200:9200"]
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.16.1
+    command: ["-f", "/usr/share/logstash/pipeline/pipeline.conf"]
+    volumes:
+      - ./monitoring/logstash/pipeline.conf:/usr/share/logstash/pipeline/pipeline.conf:ro
+    depends_on: [elasticsearch]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.16.1
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports: ["5601:5601"]
+    depends_on: [elasticsearch]
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.16.1
+    user: root
+    command: ["-c", "/usr/share/filebeat/filebeat.yml", "-e"]
+    volumes:
+      - ./monitoring/filebeat-docker.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on: [logstash]
+
+volumes:
+  pg-users:
+  pg-products:
+  pg-inventory:
+  pg-orders:
+  pg-payments:
+  pg-notifications:
+  prom-data:
+  grafana-data:
+  es-data:

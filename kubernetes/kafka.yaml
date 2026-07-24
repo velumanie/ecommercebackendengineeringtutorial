@@ -1,0 +1,93 @@
+# 3-broker KRaft cluster (no ZooKeeper) — the K8s-profile bootstrap-servers list in every
+# service's application.yml (inventory/order/payment/notification-service) expects exactly
+# this: kafka-broker-{0,1,2}.kafka.data.svc.cluster.local:9092. Docker Compose intentionally
+# runs a single broker instead (see docker-compose.yaml) since local dev doesn't need HA;
+# this manifest is the "closer to how it actually ships" version referenced in
+# docs/local-deployment.html.
+#
+# CLUSTER_ID is a fixed, pre-generated UUID (base64url, no padding) shared by all three
+# brokers — KRaft requires every broker/controller in the quorum to agree on it, and the
+# apache/kafka image's entrypoint auto-formats storage from it on first boot.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka-broker
+  namespace: data
+spec:
+  serviceName: kafka
+  replicas: 3
+  # Default OrderedReady policy creates kafka-broker-1/-2 only after kafka-broker-0 is Ready —
+  # but broker-0 can never become Ready without the other two to form Raft quorum with (2 of 3
+  # controller votes needed). Parallel lets all three start together so they can actually elect
+  # a leader.
+  podManagementPolicy: Parallel
+  selector: { matchLabels: { app: kafka } }
+  template:
+    metadata: { labels: { app: kafka } }
+    spec:
+      containers:
+        - name: kafka
+          image: apache/kafka:3.8.0
+          command:
+            - sh
+            - -c
+            - |
+              export KAFKA_NODE_ID=${HOSTNAME##*-}
+              export KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://${HOSTNAME}.kafka.data.svc.cluster.local:9092"
+              exec /etc/kafka/docker/run
+          ports:
+            - { containerPort: 9092, name: plaintext }
+            - { containerPort: 9093, name: controller }
+          env:
+            - name: CLUSTER_ID
+              value: "p6hlmExGS2OjiPeWm4XxeA"
+            - name: KAFKA_PROCESS_ROLES
+              value: "broker,controller"
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://:9092,CONTROLLER://:9093"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "0@kafka-broker-0.kafka.data.svc.cluster.local:9093,1@kafka-broker-1.kafka.data.svc.cluster.local:9093,2@kafka-broker-2.kafka.data.svc.cluster.local:9093"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "3"
+            - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+              value: "3"
+            - name: KAFKA_MIN_INSYNC_REPLICAS
+              value: "2"
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/kafka/data }
+          resources:
+            requests: { cpu: "500m", memory: "1Gi" }
+            limits: { cpu: "1", memory: "2Gi" }
+          readinessProbe:
+            tcpSocket: { port: 9092 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: { port: 9092 }
+            initialDelaySeconds: 30
+            periodSeconds: 20
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 20Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: data
+spec:
+  clusterIP: None
+  # Without this, DNS records for a pod don't publish until it's Ready — but no broker can
+  # become Ready until it can resolve and reach the other two to form Raft quorum. Chicken-
+  # and-egg without publishing not-ready addresses during the initial bootstrap race.
+  publishNotReadyAddresses: true
+  selector: { app: kafka }
+  ports:
+    - { name: plaintext, port: 9092, targetPort: 9092 }
+    - { name: controller, port: 9093, targetPort: 9093 }

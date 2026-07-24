@@ -1,0 +1,63 @@
+# One of six per-service Postgres StatefulSets (Part 14) — postgres-users/-products/
+# -inventory/-payments/-notifications in this same directory follow the identical shape.
+# In uat/prod this is replaced by a managed Postgres offering (RDS PostgreSQL / Azure
+# Database for PostgreSQL Flexible Server) — see docs/architecture.html Part 14.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-orders-secret
+  namespace: data
+type: Opaque
+stringData:
+  POSTGRES_DB: orders_db
+  POSTGRES_USER: orders_user
+  POSTGRES_PASSWORD: change-me
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-orders
+  namespace: data
+spec:
+  serviceName: postgres-orders
+  replicas: 1
+  selector: { matchLabels: { app: postgres-orders } }
+  template:
+    metadata: { labels: { app: postgres-orders } }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports: [{ containerPort: 5432 }]
+          envFrom: [{ secretRef: { name: postgres-orders-secret } }]
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+          resources:
+            requests: { cpu: "500m", memory: "1Gi" }
+            limits: { cpu: "2", memory: "4Gi" }
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "orders_user"] }
+            periodSeconds: 10
+          livenessProbe:
+            exec: { command: ["pg_isready", "-U", "orders_user"] }
+            periodSeconds: 20
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        # No storageClassName pinned — uses the cluster's default (gp3/gp3-encrypted on
+        # EKS, premium-ssd on AKS, hostpath on Docker Desktop's local cluster). Pin one
+        # explicitly only if the cluster's default isn't what you want in production.
+        resources: { requests: { storage: 50Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-orders
+  namespace: data
+spec:
+  clusterIP: None
+  selector: { app: postgres-orders }
+  ports:
+    - port: 5432
+      targetPort: 5432
